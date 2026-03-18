@@ -4,14 +4,14 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 inThisBuild(
   List(
-    organization := "dev.zio",
-    homepage := Some(url("https://zio.dev/zio-protoquill")),
+    organization := "io.getquill",
+    homepage := Some(url("https://getkyo.io/kyo-protoquill")),
     licenses := List(("Apache License 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
     developers := List(
       Developer("deusaquilus", "Alexander Ioffe", "", url("https://github.com/deusaquilus"))
     ),
     scmInfo := Some(
-      ScmInfo(url("https://github.com/zio/zio-protoquill"), "git:git@github.com:zio/zio-protoquill.git")
+      ScmInfo(url("https://github.com/getkyo/kyo-protoquill"), "git:git@github.com:getkyo/kyo-protoquill.git")
     ),
     versionScheme := Some("always"),
   )
@@ -86,7 +86,7 @@ val filteredModules = {
 }
 
 val zioQuillVersion = "4.8.5"
-val zioVersion = "2.1.26"
+val kyoVersion = "0.30.0"
 
 lazy val `quill` =
   (project in file("."))
@@ -119,7 +119,9 @@ lazy val `quill-sql` =
         "com.lihaoyi" %% "pprint" % "0.9.6",
         "ch.qos.logback" % "logback-classic" % "1.6.2" % Test,
         "io.getquill" %% "quill-engine" % zioQuillVersion,
-        "dev.zio" %% "zio" % zioVersion,
+        "io.getkyo" %% "kyo-core" % kyoVersion,
+        "io.getkyo" %% "kyo-prelude" % kyoVersion,
+        "io.getkyo" %% "kyo-data" % kyoVersion,
         ("io.getquill" %% "quill-util" % zioQuillVersion)
           .excludeAll({
             if (isCommunityBuild)
@@ -154,7 +156,6 @@ lazy val `quill-jdbc` =
     .dependsOn(`quill-sql` % "compile->compile;test->test")
 
 ThisBuild / libraryDependencySchemes += "org.typelevel" %% "cats-effect" % "always"
-ThisBuild / libraryDependencySchemes += "dev.zio" %% "zio-json" % "always"
 lazy val `quill-doobie` =
   (project in file("quill-doobie"))
     .settings(commonSettings: _*)
@@ -181,6 +182,7 @@ lazy val `quill-caliban` =
         "org.scalatest" %% "scalatest" % scalatestVersion % Test,
         "org.scalatest" %% "scalatest-mustmatchers" % scalatestVersion % Test,
         "org.postgresql" % "postgresql" % "42.7.13" % Test,
+        "io.getkyo" %% "kyo-zio-test" % kyoVersion % Test
       )
     )
     .dependsOn(`quill-jdbc-zio` % "compile->compile")
@@ -191,8 +193,9 @@ lazy val `quill-zio` =
     .settings(
       Test / fork := true,
       libraryDependencies ++= Seq(
-        "dev.zio" %% "zio" % zioVersion,
-        "dev.zio" %% "zio-streams" % zioVersion
+        "io.getkyo" %% "kyo-core" % kyoVersion,
+        "io.getkyo" %% "kyo-prelude" % kyoVersion,
+        "io.getkyo" %% "kyo-data" % kyoVersion
       )
     )
     .dependsOn(`quill-sql` % "compile->compile;test->test")
@@ -205,7 +208,7 @@ lazy val `quill-jdbc-zio` =
       libraryDependencies ++= Seq(
         // Needed for PGObject in JsonExtensions but not necessary if user is not using postgres
         "org.postgresql" % "postgresql" % "42.7.13" % "provided",
-        "dev.zio" %% "zio-json" % "0.10.0"
+        "io.getkyo" %% "kyo-json" % kyoVersion
       ),
       Test / runMain / fork := true,
       Test / fork := true,
@@ -242,8 +245,9 @@ lazy val `quill-cassandra-zio` =
       Test / fork := true,
       libraryDependencies ++= Seq(
         "com.datastax.oss" % "java-driver-core" % "4.17.0",
-        "dev.zio" %% "zio" % zioVersion,
-        "dev.zio" %% "zio-streams" % zioVersion
+        "io.getkyo" %% "kyo-core" % kyoVersion,
+        "io.getkyo" %% "kyo-prelude" % kyoVersion,
+        "io.getkyo" %% "kyo-data" % kyoVersion
       )
     )
     .dependsOn(`quill-cassandra` % "compile->compile;test->test")
