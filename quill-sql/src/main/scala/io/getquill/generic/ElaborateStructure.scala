@@ -17,7 +17,7 @@ import io.getquill.util.Format
 import scala.annotation.tailrec
 import scala.collection.mutable
 import io.getquill.ast.External.Source
-import zio.Chunk
+import kyo.Chunk
 import io.getquill.metaprog.Extractors
 
 /**

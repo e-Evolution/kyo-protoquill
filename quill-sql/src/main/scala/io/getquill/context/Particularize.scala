@@ -20,7 +20,7 @@ import io.getquill.util.Format
 import io.getquill.metaprog.InjectableEagerPlanterExpr
 import io.getquill.parser.Lifter
 import io.getquill.context.QueryExecutionBatchModel.SingleEntityLifts
-import zio.Chunk
+import kyo.Chunk
 import io.getquill.metaprog.TranspileConfigLiftable
 import io.getquill.util.Interpolator2
 import io.getquill.util.Messages.TraceType
@@ -187,7 +187,7 @@ object Particularize {
             }
           }
         }
-        apply(Chunk.single(Item(token)), Chunk.empty, Chunk.empty, 0, 0)
+        apply(Chunk(Item(token)), Chunk.empty, Chunk.empty, 0, 0)
       }
 
       token2String(statements)
@@ -195,7 +195,7 @@ object Particularize {
   } // end Dynamic
 
   private implicit class IterableExtensions[A](list: Iterable[A]) extends AnyVal {
-    def toChunk[A] = Chunk.fromIterable(list)
+    def toChunk[A] = Chunk.from(list)
   }
   private implicit class ChunkExtensions[A](val as: Chunk[A]) extends AnyVal {
     def mapWithHasNext[B](f: (A, Boolean) => B): Chunk[B] = {
