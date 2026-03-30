@@ -3,10 +3,9 @@ package io.getquill
 import caliban.graphQL
 import caliban.schema.Annotations.GQLDescription
 import caliban._
-import caliban.quick._ 
 
 import io.getquill._
-import io.getquill.context.KyoImplicitSyntax._
+import io.getquill.context.qkyo.KyoImplicitSyntax._
 import io.getquill.util.LoadConfig
 
 import java.io.Closeable
@@ -22,16 +21,16 @@ import io.getquill.NestedSchema.*
 import caliban.schema.Schema.auto._
 import caliban.schema.ArgBuilder.auto._
 
-import caliban._
+import kyo.*
+import kyo.given
 
 object DaoNested {
   case class PersonAddressPlanQuery(plan: String, pa: List[PersonAddressNested])
   private val logger = ContextLogger(classOf[DaoNested.type])
 
-  object Ctx extends PostgresKyoJdbcContext(Literal)
-  import Ctx._
   lazy val ds = JdbcContextConfig(LoadConfig("testPostgresDB")).dataSource
-  given Implicit[DataSource] = Implicit(ds)
+  object Ctx extends PostgresKyoJdbcContext(Literal, ds)
+  import Ctx._
 
   inline def q(inline columns: List[String], inline filters: Map[String, String]) =
     quote {
@@ -44,33 +43,32 @@ object DaoNested {
   inline def plan(inline columns: List[String], inline filters: Map[String, String]) =
     quote { sql"EXPLAIN ${q(columns, filters)}".pure.as[Query[String]] }
 
-  def personAddress(columns: List[String], filters: Map[String, String]) = {
+  def personAddress(columns: List[String], filters: Map[String, String]): KyoTask[List[PersonAddressNested]] = {
     println(s"Getting columns: $columns")
-    run(q(columns, filters)).implicitDS.mapError(e => {
-      logger.underlying.error("personAddress query failed", e)
-      e
-    })
+    Abort.catching[Throwable] {
+      Ctx.run(q(columns, filters))
+    }
   }
 
-  def personAddressPlan(columns: List[String], filters: Map[String, String]) = {
-    run(plan(columns, filters), OuterSelectWrap.Never).map(_.mkString("\n")).implicitDS.mapError(e => {
-      logger.underlying.error("personAddressPlan query failed", e)
-      e
-    })
+  def personAddressPlan(columns: List[String], filters: Map[String, String]): KyoTask[String] = {
+    Abort.catching[Throwable] {
+      Ctx.run(plan(columns, filters), OuterSelectWrap.Never).mkString("\n")
+    }
   }
 
-  def resetDatabase() =
-    (for {
-      _ <- run(sql"TRUNCATE TABLE AddressT, PersonT RESTART IDENTITY".as[Delete[PersonT]])
-      _ <- run(liftQuery(ExampleData.people).foreach(row => query[PersonT].insertValue(row)))
-      _ <- run(liftQuery(ExampleData.addresses).foreach(row => query[AddressT].insertValue(row)))
-    } yield ()).implicitDS
+  def resetDatabase(): KyoTask[Unit] =
+    Abort.catching[Throwable] {
+      Ctx.run(sql"TRUNCATE TABLE AddressT, PersonT RESTART IDENTITY".as[Delete[PersonT]])
+      Ctx.run(liftQuery(ExampleData.people).foreach(row => query[PersonT].insertValue(row)))
+      Ctx.run(liftQuery(ExampleData.addresses).foreach(row => query[AddressT].insertValue(row)))
+      ()
+    }
 } // end DaoNested
 
 object CalibanExampleNested {
   case class Queries(
-      personAddress: Field => (ProductArgs[PersonAddressNested] => Task[List[PersonAddressNested]]),
-      personAddressPlan: Field => (ProductArgs[PersonAddressNested] => Task[DaoNested.PersonAddressPlanQuery])
+      personAddress: Field => (ProductArgs[PersonAddressNested] => KyoTask[List[PersonAddressNested]]),
+      personAddressPlan: Field => (ProductArgs[PersonAddressNested] => KyoTask[DaoNested.PersonAddressPlanQuery])
   )
 
   val api = graphQL(
@@ -81,11 +79,14 @@ object CalibanExampleNested {
             DaoNested.personAddress(quillColumns(personAddress), productArgs.keyValues)
           ),
         personAddressPlan =>
-          (productArgs =>
-            (DaoNested.personAddressPlan(quillColumns(personAddress), productArgs.keyValues)
-              zip DaoNested.personAddress(quillColumns(personAddress), productArgs.keyValues))
-              .map { case (pa, plan) => DaoNested.PersonAddressPlanQuery(pa, plan) }
-          )
+          (productArgs => {
+            val columns = quillColumns(personAddressPlan)
+            val filters = productArgs.keyValues
+            for {
+              plan <- DaoNested.personAddressPlan(columns, filters)
+              pa   <- DaoNested.personAddress(columns, filters)
+            } yield DaoNested.PersonAddressPlanQuery(plan, pa)
+          })
       )
     ),
     Nil, // directives
@@ -94,17 +95,19 @@ object CalibanExampleNested {
   )
 
   def main(args: Array[String]): Unit = {
-    val ds = JdbcContextConfig(LoadConfig("testPostgresDB")).dataSource
-    val app = for {
-      _ <- DaoNested.resetDatabase()
-      _ <- api.interpreter.flatMap { interpreter =>
-        interpreter.runServer(
-          port = 8088,
-          apiPath = "/api/graphql",
-          graphiqlPath = Some("/graphiql")
-        )
-      }
-    } yield ()
-    app.runSyncUnsafe(ds)
+    import zio.{Unsafe, Runtime}
+    import caliban.quick._
+    Unsafe.unsafe { implicit unsafe =>
+      Runtime.default.unsafe.run(
+        for {
+          _ <- kyo.ZIOs.run(DaoNested.resetDatabase())
+          _ <- api.runServer(
+            port = 8088,
+            apiPath = "/api/graphql",
+            graphiqlPath = Some("/graphiql")
+          )
+        } yield ()
+      ).getOrThrowFiberFailure()
+    }
   }
 } // end CalibanExampleNested

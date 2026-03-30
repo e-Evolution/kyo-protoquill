@@ -5,47 +5,40 @@ import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 
 import caliban.GraphQL
-import io.getquill.jdbckyo.Quill
-import io.getquill.util.ContextLogger
+import io.getquill.util.LoadConfig
+import kyo.*
+
+object CalibanSpec {
+  lazy val ds: javax.sql.DataSource = JdbcContextConfig(LoadConfig("testPostgresDB")).dataSource
+}
 
 trait CalibanSpec extends AnyFreeSpec with Matchers with BeforeAndAfterAll {
-  val context: Quill[_, _]
-  import context._
+  object Ctx extends PostgresKyoJdbcContext(Literal, CalibanSpec.ds)
+  import Ctx._
 
-  // FlatSchema and NestedSchema share the same DB data so only need to create it using one of them
   override def beforeAll() = {
     import FlatSchema._
-    context.run(sql"TRUNCATE TABLE AddressT, PersonT RESTART IDENTITY".as[Delete[PersonT]])
-      .flatMap(_ => context.run(liftQuery(ExampleData.people).foreach(row => query[PersonT].insertValue(row))))
-      .flatMap(_ => context.run(liftQuery(ExampleData.addresses).foreach(row => query[AddressT].insertValue(row))))
-      .runSyncUnsafe
+    Ctx.run(sql"TRUNCATE TABLE AddressT, PersonT RESTART IDENTITY".as[Delete[PersonT]])
+    Ctx.run(liftQuery(ExampleData.people).foreach(row => query[PersonT].insertValue(row)))
+    Ctx.run(liftQuery(ExampleData.addresses).foreach(row => query[AddressT].insertValue(row)))
   }
-
-  // override def afterAll() = {
-  //   import FlatSchema._
-  //   context.run(sql"TRUNCATE TABLE AddressT, PersonT RESTART IDENTITY".as[Delete[PersonT]]).provideLayer(zioDS).unsafeRunSync()
-  // }
 
   def api: GraphQL[Any]
 
-  extension [A](qry: A) {
-    def runSyncUnsafe: A = qry.asInstanceOf[A] // Placeholder - actual implementation depends on effect type
-  }
-
+  // kyo-caliban's own tests use ZIO's unsafe runner for interpreter execution
+  // because Caliban's api.interpreter returns ZIO natively
   def unsafeRunQuery(queryString: String) = {
-    val output =
-      (for {
-        interpreter <- api.interpreter
-        result      <- interpreter.execute(queryString)
-      } yield (result))
-        .tapError{ e =>
-          fail("GraphQL Validation Error", e)
-          ZIO.unit
-        }.unsafeRunSync()
+    import zio.{Unsafe, Runtime}
+
+    val output = Unsafe.unsafe { implicit unsafe =>
+      Runtime.default.unsafe.run(
+        api.interpreter.flatMap(_.execute(queryString))
+      ).getOrThrowFiberFailure()
+    }
 
     if (output.errors.length != 0)
       fail(s"GraphQL Validation Failures: ${output.errors}")
     else
       output.data.toString
-  } // end unsafeRunQuery
+  }
 }

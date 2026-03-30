@@ -1,4 +1,4 @@
-package io.getquill.context.kyo
+package io.getquill.context.qkyo
 
 import java.sql.{ Connection, ResultSet }
 

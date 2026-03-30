@@ -17,18 +17,16 @@ class PostgresDoobieContextSuite extends AnyFreeSpec with Matchers {
   import cats.effect.unsafe.implicits.global
 
   // A transactor that always rolls back.
-  lazy val xa = Transactor
-    .after
-     < Local(
-      Transactor.fromDriverManager[IO](
-        "org.postgresql.Driver",
-        s"jdbc:postgresql://${System.getenv("POSTGRES_HOST")}:${System.getenv("POSTGRES_PORT")}/doobie_test",
-        "postgres",
-        System.getenv("POSTGRES_PASSWORD"),
-        None
-      ),
-      HC.rollback,
-    )
+  lazy val xa = Transactor.after.set(
+    Transactor.fromDriverManager[IO](
+      "org.postgresql.Driver",
+      s"jdbc:postgresql://${System.getenv("POSTGRES_HOST")}:${System.getenv("POSTGRES_PORT")}/doobie_test",
+      "postgres",
+      System.getenv("POSTGRES_PASSWORD"),
+      None
+    ),
+    HC.rollback
+  )
 
   val dc = new DoobieContext.Postgres[Literal](Literal)
 

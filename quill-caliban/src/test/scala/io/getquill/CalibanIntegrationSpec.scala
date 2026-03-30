@@ -1,38 +1,39 @@
 package io.getquill
 
-
-import io.getquill.context.ZioJdbc._
 import caliban.execution.Field
-import caliban.schema.ArgBuilder
 import caliban.graphQL
-import caliban.schema.Annotations.GQLDescription
 import caliban.RootResolver
 import io.getquill.CalibanIntegration._
 import caliban.schema.Schema.auto._
 import caliban.schema.ArgBuilder.auto._
+import kyo.*
+import kyo.given
 
 class CalibanIntegrationSpec extends CalibanSpec {
   import Ctx._
 
+  // Kyo effect type equivalent to ZIO's Task
+  type KyoTask[A] = A < (Abort[Throwable] & Async)
+
   object Flat {
     import FlatSchema._
     object Dao {
-      def personAddress(columns: List[String], filters: Map[String, String]): ZIO[Any, Throwable, List[PersonAddress]] =
-        Ctx.run {
-          query[PersonT].leftJoin(query[AddressT]).on((p, a) => p.id == a.ownerId)
-            .map((p, a) => PersonAddress(p.id, p.first, p.last, p.age, a.map(_.street)))
-          .filterByKeys(filters)
-            //.filterColumns(columns) // //
-            .take(10)
-        }.provideLayer(zioDS).tap(list => {
-          println(s"Results: $list for columns: $columns")
-          ZIO.unit
-        })
+      def personAddress(columns: List[String], filters: Map[String, String]): KyoTask[List[PersonAddress]] =
+        Abort.catching[Throwable] {
+          val result = Ctx.run {
+            query[PersonT].leftJoin(query[AddressT]).on((p, a) => p.id == a.ownerId)
+              .map((p, a) => PersonAddress(p.id, p.first, p.last, p.age, a.map(_.street)))
+              .filterByKeys(filters)
+              .take(10)
+          }
+          println(s"Results: $result for columns: $columns")
+          result
+        }
     }
   }
 
   case class Queries(
-    personAddressFlat: Field => (ProductArgs[FlatSchema.PersonAddress] => Task[List[FlatSchema.PersonAddress]]),
+    personAddressFlat: Field => (ProductArgs[FlatSchema.PersonAddress] => KyoTask[List[FlatSchema.PersonAddress]]),
   )
 
   val api = graphQL(

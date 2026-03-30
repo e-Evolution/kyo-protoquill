@@ -18,19 +18,17 @@ class PeopleDoobieReturningSpec extends PeopleReturningSpec {
 
   import cats.effect.unsafe.implicits.global
 
-  // A transactor that always rolls back.
-  lazy val xa = Transactor
-    .after
-     < Local(
-      Transactor.fromDriverManager[IO](
-        "org.postgresql.Driver",
-        s"jdbc:postgresql://${System.getenv("POSTGRES_HOST")}:${System.getenv("POSTGRES_PORT")}/quill_test",
-        "postgres",
-        System.getenv("POSTGRES_PASSWORD"),
-        None
-      ),
-      HC.commit
-    )
+  // A transactor that commits after each operation.
+  lazy val xa = Transactor.after.set(
+    Transactor.fromDriverManager[IO](
+      "org.postgresql.Driver",
+      s"jdbc:postgresql://${System.getenv("POSTGRES_HOST")}:${System.getenv("POSTGRES_PORT")}/quill_test",
+      "postgres",
+      System.getenv("POSTGRES_PASSWORD"),
+      None
+    ),
+    HC.commit
+  )
 
   val testContext = new DoobieContext.Postgres(Literal)
   val context: testContext.type = testContext

@@ -1,4 +1,4 @@
-package io.getquill.context.kyo
+package io.getquill.context.qkyo
 
 import io.getquill.NamingStrategy
 import io.getquill.context.{Context, ContextEffect}

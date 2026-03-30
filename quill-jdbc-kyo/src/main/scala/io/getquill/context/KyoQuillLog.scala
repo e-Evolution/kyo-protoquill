@@ -1,10 +1,11 @@
 package io.getquill.context
 
-import kyo.*
+import io.getquill.context.ExecutionInfo
+import kyo._
 
 object KyoQuillLog {
-  val latestExecutionInfo: Local[Option[ExecutionInfo]] =
-    Local.init(None)
+  val latestExecutionInfo: kyo.Local[Option[ExecutionInfo]] =
+    kyo.Local.init(None)
 
   final class ExecutionInfoAware(val executionInfo: () => ExecutionInfo) { self =>
     def apply[A, S](kyo: A < S): A < S =
@@ -12,11 +13,10 @@ object KyoQuillLog {
   }
 
   def withExecutionInfo(info: => ExecutionInfo): ExecutionInfoAware =
-    new ExecutionInfoAware(() => info)
+    ExecutionInfoAware(() => info)
 
-
-  val latestSqlQuery: Local[Option[String]] =
-    Local.init(None)
+  val latestSqlQuery: kyo.Local[Option[String]] =
+    kyo.Local.init(None)
 
   final class SqlQueryAware(val sqlQuery: () => String) {
     self =>
@@ -25,5 +25,5 @@ object KyoQuillLog {
   }
 
   def withSqlQuery(sqlQuery: => String): SqlQueryAware =
-    new SqlQueryAware(() => sqlQuery)
+    SqlQueryAware(() => sqlQuery)
 }

@@ -1,46 +1,41 @@
 package io.getquill
 
-
-import io.getquill.context.ZioJdbc._
 import caliban.execution.Field
-import caliban.schema.ArgBuilder
 import caliban.graphQL
-import caliban.schema.Annotations.GQLDescription
 import caliban.RootResolver
 import io.getquill.CalibanIntegration._
 import caliban.schema._
 import caliban.schema.Schema.auto._
 import caliban.schema.ArgBuilder.auto._
+import kyo.*
+import kyo.given
 
 class CalibanIntegrationNestedSpec extends CalibanSpec {
   import Ctx._
 
+  // Kyo effect type equivalent to ZIO's Task
+  type KyoTask[A] = A < (Abort[Throwable] & Async)
+
   object Nested {
     import NestedSchema._
     object Dao {
-      def personAddress(columns: List[String], filters: Map[String, String]) =
-        Ctx.run {
-          query[PersonT].leftJoin(query[AddressT]).on((p, a) => p.id == a.ownerId)
-            .map((p, a) => PersonAddressNested(p.id, p.name, p.age, a.map(_.street)))
-            .filterByKeys(filters)
-            .filterColumns(columns)
-            .take(10)
-        }.provideLayer(zioDS).tapBoth({
-          e => {
-            println(s"ERROR $e")
-            ZIO.unit
+      def personAddress(columns: List[String], filters: Map[String, String]): KyoTask[List[PersonAddressNested]] =
+        Abort.catching[Throwable] {
+          val result = Ctx.run {
+            query[PersonT].leftJoin(query[AddressT]).on((p, a) => p.id == a.ownerId)
+              .map((p, a) => PersonAddressNested(p.id, p.name, p.age, a.map(_.street)))
+              .filterByKeys(filters)
+              .filterColumns(columns)
+              .take(10)
           }
-        }, {
-          list => {
-            println(s"Results: $list for columns: $columns and filters: ${io.getquill.util.Messages.qprint(filters)}")
-            ZIO.unit
-          }
-        })
+          println(s"Results: $result for columns: $columns and filters: ${io.getquill.util.Messages.qprint(filters)}")
+          result
+        }
     }
   }
 
   case class Queries(
-    personAddressNested: Field => (ProductArgs[NestedSchema.PersonAddressNested] => Task[List[NestedSchema.PersonAddressNested]])
+    personAddressNested: Field => (ProductArgs[NestedSchema.PersonAddressNested] => KyoTask[List[NestedSchema.PersonAddressNested]])
   )
 
   val api = graphQL(

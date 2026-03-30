@@ -55,19 +55,19 @@ object KyoJdbc {
   }
 
   implicit class QuillKyoDataSourceExt[T](qkyo: QIO[T]) {
-    def implicitDS(implicit implicitEnv: io.getquill.context.kyo.KyoImplicitSyntax.Implicit[DataSource]): QCIO[T] =
+    def implicitDS(implicit implicitEnv: io.getquill.context.qkyo.KyoImplicitSyntax.Implicit[DataSource]): QCIO[T] =
       ???
   }
 
   implicit class QuillKyoSomeDataSourceExt[T, R](qkyo: T < (Abort[Throwable] & Env[DataSource with R])) {
-    def implicitSomeDS(implicit implicitEnv: io.getquill.context.kyo.KyoImplicitSyntax.Implicit[DataSource]): T < (Abort[Throwable] & Env[R]) =
+    def implicitSomeDS(implicit implicitEnv: io.getquill.context.qkyo.KyoImplicitSyntax.Implicit[DataSource]): T < (Abort[Throwable] & Env[R]) =
       ???
   }
 
   implicit class QuillKyoExtPlain[T, R](qkyo: T < (Abort[Throwable] & Env[Connection with R])) {
     def onDataSource: QIO[T] = ???
 
-    def implicitDS(implicit implicitEnv: io.getquill.context.kyo.KyoImplicitSyntax.Implicit[DataSource]): QIO[T] =
+    def implicitDS(implicit implicitEnv: io.getquill.context.qkyo.KyoImplicitSyntax.Implicit[DataSource]): QIO[T] =
       onDataSource
   }
 
