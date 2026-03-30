@@ -38,11 +38,11 @@ lazy val sqlTestModules = Seq[sbt.ClasspathDep[sbt.ProjectReference]](
 )
 
 lazy val dbModules = Seq[sbt.ClasspathDep[sbt.ProjectReference]](
-  `quill-jdbc`, `quill-doobie`, `quill-zio`, `quill-jdbc-zio`, `quill-caliban`
+  `quill-jdbc`, `quill-doobie`, `quill-kyo`, `quill-jdbc-kyo`, `quill-caliban`
 )
 
 lazy val bigdataModules = Seq[sbt.ClasspathDep[sbt.ProjectReference]](
-  `quill-cassandra`, `quill-cassandra-zio`
+  `quill-cassandra`, `quill-cassandra-kyo`
 )
 
 lazy val allModules =
@@ -189,10 +189,10 @@ lazy val `quill-caliban` =
         "io.getkyo" %% "kyo-caliban" % kyoVersion
       )
     )
-    .dependsOn(`quill-jdbc-zio` % "compile->compile")
+    .dependsOn(`quill-jdbc-kyo` % "compile->compile")
 
-lazy val `quill-zio` =
-  (project in file("quill-zio"))
+lazy val `quill-kyo` =
+  (project in file("quill-kyo"))
     .settings(commonSettings: _*)
     .settings(
       Test / fork := true,
@@ -204,8 +204,8 @@ lazy val `quill-zio` =
     )
     .dependsOn(`quill-sql` % "compile->compile;test->test")
 
-lazy val `quill-jdbc-zio` =
-  (project in file("quill-jdbc-zio"))
+lazy val `quill-jdbc-kyo` =
+  (project in file("quill-jdbc-kyo"))
     .settings(commonSettings: _*)
     .settings(jdbcTestingLibraries: _*)
     .settings(
@@ -228,7 +228,7 @@ lazy val `quill-jdbc-zio` =
         }
       }
     )
-    .dependsOn(`quill-zio` % "compile->compile;test->test")
+    .dependsOn(`quill-kyo` % "compile->compile;test->test")
     .dependsOn(`quill-sql` % "compile->compile;test->test")
     .dependsOn(`quill-jdbc` % "compile->compile;test->test")
 
@@ -243,8 +243,8 @@ lazy val `quill-cassandra` =
     )
     .dependsOn(`quill-sql` % "compile->compile;test->test")
 
-lazy val `quill-cassandra-zio` =
-  (project in file("quill-cassandra-zio"))
+lazy val `quill-cassandra-kyo` =
+  (project in file("quill-cassandra-kyo"))
     .settings(commonSettings: _*)
     .settings(
       Test / fork := true,
@@ -256,7 +256,7 @@ lazy val `quill-cassandra-zio` =
       )
     )
     .dependsOn(`quill-cassandra` % "compile->compile;test->test")
-    .dependsOn(`quill-zio` % "compile->compile;test->test")
+    .dependsOn(`quill-kyo` % "compile->compile;test->test")
 
 // Include scalafmt formatter for pretty printing failed queries
 val includeFormatter =

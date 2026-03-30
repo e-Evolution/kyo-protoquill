@@ -1,4 +1,4 @@
-package io.getquill.context.qzio
+package io.getquill.context.kyo
 
 import io.getquill.NamingStrategy
 import io.getquill.context.{ExecutionInfo, ContextVerbPrepare}

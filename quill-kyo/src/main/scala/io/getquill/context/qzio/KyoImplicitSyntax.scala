@@ -1,4 +1,4 @@
-package io.getquill.context.qzio
+package io.getquill.context.kyo
 
 import kyo.*
 import kyo.Stream
