@@ -30,8 +30,8 @@ trait KyoPrepareContext[+Dialect <: SqlIdiom, +Naming <: NamingStrategy] extends
   def prepareSingle(sql: String, prepare: Prepare = identityPrepare)(info: ExecutionInfo, dc: Runner): QCIO[PreparedStatement] = {
     for {
       conn <- Env.get[Session]
-      stmt <- Sync.defer(conn.prepareStatement(sql))
-      ps <- Sync.defer {
+      stmt <- kyo.IO.defer(conn.prepareStatement(sql))
+      ps <- kyo.IO.defer {
         val (params, ps) = prepare(stmt, conn)
         logger.logQuery(sql, params)
         ps

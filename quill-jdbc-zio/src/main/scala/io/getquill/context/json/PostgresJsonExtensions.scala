@@ -1,75 +1,75 @@
 package io.getquill.context.json
 
 import io.getquill.context.jdbc.{ Decoders, Encoders, JdbcContextTypes }
-import zio.json.{ JsonDecoder, JsonEncoder }
-import zio.json.ast.Json
 
 import java.sql.Types
 import scala.reflect.{ ClassTag, classTag }
 import io.getquill.{ JsonValue, JsonbValue }
+import zio.json.{JsonEncoder, JsonDecoder}
 
 trait PostgresJsonExtensions extends Encoders with Decoders {
   this: JdbcContextTypes[_, _] =>
 
-  implicit def jsonEntityEncoder[T](implicit jsonEncoder: JsonEncoder[T]): Encoder[JsonValue[T]] =
-    entityEncoder[T, JsonValue[T]](_.value)("json", jsonEncoder)
-  implicit def jsonEntityDecoder[T: ClassTag](implicit jsonDecoder: JsonDecoder[T]): Decoder[JsonValue[T]] =
-    entityDecoder[T, JsonValue[T]](JsonValue(_))("json", jsonDecoder)
-  implicit def jsonbEntityEncoder[T](implicit jsonEncoder: JsonEncoder[T]): Encoder[JsonbValue[T]] =
-    entityEncoder[T, JsonbValue[T]](_.value)("jsonb", jsonEncoder)
-  implicit def jsonbEntityDecoder[T: ClassTag](implicit jsonDecoder: JsonDecoder[T]): Decoder[JsonbValue[T]] =
-    entityDecoder[T, JsonbValue[T]](JsonbValue(_))("jsonb", jsonDecoder)
+  implicit def jsonEntityEncoder[T: JsonEncoder: ClassTag]: Encoder[JsonValue[T]] =
+    encoder(Types.OTHER, (index, value: JsonValue[T], row) =>
+      row.setObject(index, value.value, Types.OTHER)
+    )
 
-  implicit def jsonAstEncoder: Encoder[JsonValue[Json]] = astEncoder(_.value.toString(), "json")
-  implicit def jsonAstDecoder: Decoder[JsonValue[Json]] = astDecoder(JsonValue(_))
-  implicit def jsonbAstEncoder: Encoder[JsonbValue[Json]] = astEncoder(_.value.toString(), "jsonb")
-  implicit def jsonbAstDecoder: Decoder[JsonbValue[Json]] = astDecoder(JsonbValue(_))
+  implicit def jsonEntityDecoder[T: JsonDecoder: ClassTag]: Decoder[JsonValue[T]] =
+    decoder((index, row, session) =>
+      JsonValue(row.getObject(index).asInstanceOf[T])
+    )
+
+  implicit def jsonbEntityEncoder[T: JsonEncoder: ClassTag]: Encoder[JsonbValue[T]] =
+    encoder(Types.OTHER, (index, value: JsonbValue[T], row) =>
+      row.setObject(index, value.value, Types.OTHER)
+    )
+
+  implicit def jsonbEntityDecoder[T: JsonDecoder: ClassTag]: Decoder[JsonbValue[T]] =
+    decoder((index, row, session) =>
+      JsonbValue(row.getObject(index).asInstanceOf[T])
+    )
+
+  implicit def jsonAstEncoder: Encoder[JsonValue[String]] =
+    encoder(Types.OTHER, (index, value: JsonValue[String], row) =>
+      row.setString(index, value.value)
+    )
+
+  implicit def jsonAstDecoder: Decoder[JsonValue[String]] =
+    decoder((index, row, session) =>
+      JsonValue(row.getString(index))
+    )
+
+  implicit def jsonbAstEncoder: Encoder[JsonbValue[String]] =
+    encoder(Types.OTHER, (index, value: JsonbValue[String], row) =>
+      row.setString(index, value.value)
+    )
+
+  implicit def jsonbAstDecoder: Decoder[JsonbValue[String]] =
+    decoder((index, row, session) =>
+      JsonbValue(row.getString(index))
+    )
 
   def astEncoder[Wrapper](valueToString: Wrapper => String, jsonType: String): Encoder[Wrapper] =
-    encoder(Types.OTHER, (index, jsonValue, row) => {
-      val obj = new org.postgresql.util.PGobject()
-      obj.setType(jsonType)
-      val jsonString = valueToString(jsonValue)
-      obj.setValue(jsonString)
-      row.setObject(index, obj)
-    })
+    encoder(Types.OTHER, (index, value: Wrapper, row) =>
+      row.setString(index, valueToString(value))
+    )
 
-  def astDecoder[Wrapper](valueFromString: Json => Wrapper): Decoder[Wrapper] =
-    decoder((index, row, session) => {
-      val obj = row.getObject(index, classOf[org.postgresql.util.PGobject])
-      val jsonString = obj.getValue
-      Json.decoder.decodeJson(jsonString) match {
-        case Right(value) => valueFromString(value)
-        case Left(error)  => throw new IllegalArgumentException(s"Error decoding the Json value '${jsonString}' into a zio.json.ast.Json. Message: ${error}")
-      }
-    })
+  def astDecoder[Wrapper](valueFromString: String => Wrapper): Decoder[Wrapper] =
+    decoder((index, row, session) =>
+      valueFromString(row.getString(index))
+    )
 
-  def entityEncoder[JsValue, Wrapper](
-    unwrap: Wrapper => JsValue
-  )(
-    jsonType:    String,
-    jsonEncoder: JsonEncoder[JsValue]
-  ): Encoder[Wrapper] =
-    encoder(Types.OTHER, (index, jsonValue, row) => {
-      val obj = new org.postgresql.util.PGobject()
-      obj.setType(jsonType)
-      val jsonString = jsonEncoder.encodeJson(unwrap(jsonValue), None).toString
-      obj.setValue(jsonString)
-      row.setObject(index, obj)
-    })
+  def entityEncoder[JsValue, Wrapper](unwrap: Wrapper => JsValue)(jsonType: String, jsonEncoder: JsonEncoder[JsValue]): Encoder[Wrapper] =
+    encoder(Types.OTHER, (index, value: Wrapper, row) =>
+      row.setString(index, jsonEncoder.encodeJson(unwrap(value)).toString)
+    )
 
-  def entityDecoder[JsValue: ClassTag, Wrapper](
-    wrap: JsValue => Wrapper
-  )(
-    jsonType:    String,
-    jsonDecoder: JsonDecoder[JsValue]
-  ): Decoder[Wrapper] =
-    decoder((index, row, session) => {
-      val obj = row.getObject(index, classOf[org.postgresql.util.PGobject])
-      val jsonString = obj.getValue
-      jsonDecoder.decodeJson(jsonString) match {
-        case Right(value) => wrap(value)
-        case Left(error)  => throw new IllegalArgumentException(s"Error decoding the Json value '${jsonString}' into a ${classTag[JsValue]}. Message: ${error}")
-      }
-    })
+  def entityDecoder[JsValue: ClassTag, Wrapper](wrap: JsValue => Wrapper)(jsonType: String, jsonDecoder: JsonDecoder[JsValue]): Decoder[Wrapper] =
+    decoder((index, row, session) =>
+      jsonDecoder.decodeJson(row.getString(index)).fold(
+        err => throw new RuntimeException(s"Failed to decode JSON: $err"),
+        wrap
+      )
+    )
 }

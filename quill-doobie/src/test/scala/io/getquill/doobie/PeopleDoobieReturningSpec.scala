@@ -21,7 +21,7 @@ class PeopleDoobieReturningSpec extends PeopleReturningSpec {
   // A transactor that always rolls back.
   lazy val xa = Transactor
     .after
-    .set(
+     < Local(
       Transactor.fromDriverManager[IO](
         "org.postgresql.Driver",
         s"jdbc:postgresql://${System.getenv("POSTGRES_HOST")}:${System.getenv("POSTGRES_PORT")}/quill_test",

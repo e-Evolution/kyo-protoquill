@@ -3,7 +3,7 @@ package io.getquill
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
-import zio.{ZIO, Task}
+
 import caliban.GraphQL
 import io.getquill.jdbczio.Quill
 import io.getquill.util.ContextLogger

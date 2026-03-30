@@ -1,61 +1,45 @@
 package io.getquill
 
-import io.getquill.context.qzio.KyoImplicitSyntax.*
 import org.scalatest.BeforeAndAfterAll
-import kyo.*
-import kyo.stream.Stream
-
-import java.sql.Connection
-import javax.sql.DataSource
 
 object KyoSpec {
-  def runLayerUnsafe[T](layer: Env.Layer[Any, T]): T =
-    ???
+  def runUnsafe[T](t: T): T = t
 }
 
 trait KyoSpec extends Spec with BeforeAndAfterAll {
 
-  def accumulate[T](stream: Stream[T, Any]): List[T] < Any =
-    Stream.runCollect(stream)
+  def accumulate[T](stream: Iterable[T]): List[T] = stream.toList
 
-  def collect[T](stream: Stream[T, Any]): List[T] =
-    ???
+  def collect[T](stream: Iterable[T]): List[T] = accumulate(stream)
 
-  def collect[T](kyo: T < Any): T =
-    ???
+  def collect[T](t: T): T = t
 
-  implicit class StreamTestExt[T](stream: Stream[T, Any]) {
+  implicit class StreamTestExt[T](stream: Iterable[T]) {
     def runSyncUnsafe() = collect[T](stream)
   }
 
-  implicit class KyoTestExt[T](kyo: T < Any) {
-    def runSyncUnsafe() = collect[T](kyo)
+  implicit class KyoTestExt[T](t: T) {
+    def runSyncUnsafe() = collect[T](t)
   }
 }
 
 trait KyoProxySpec extends Spec with BeforeAndAfterAll {
 
-  def accumulateDS[T](stream: Stream[T, (Abort[Throwable] & Env[DataSource] & S)]): List[T] < (Abort[Throwable] & S) =
-    Stream.runCollect(stream)
+  def accumulate[T](stream: Iterable[T]): List[T] = stream.toList
 
-  def accumulate[T](stream: Stream[T, (Abort[Throwable] & Env[Connection] & S)]): List[T] < (Abort[Throwable] & S) =
-    Stream.runCollect(stream)
+  def collect[T](stream: Iterable[T]): List[T] = accumulate(stream)
 
-  def collect[T](stream: Stream[T, (Abort[Throwable] & Env[DataSource] & S)])(implicit runtime: KyoImplicitSyntax.Implicit[DataSource]): List[T] =
-    ???
+  def collect[T](t: T): T = t
 
-  def collect[T](kyo: T < (Abort[Throwable] & Env[DataSource] & S))(implicit runtime: KyoImplicitSyntax.Implicit[DataSource]): T =
-    ???
-
-  implicit class KyoAnyOps[T](kyo: T < Any) {
-    def runSyncUnsafe(): T = ???
+  implicit class KyoAnyOps[T](t: T) {
+    def runSyncUnsafe(): T = collect[T](t)
   }
 
-  implicit class StreamTestExt[T](stream: Stream[T, (Abort[Throwable] & Env[DataSource] & S)])(implicit runtime: KyoImplicitSyntax.Implicit[DataSource]) {
+  implicit class StreamTestExt[T](stream: Iterable[T]) {
     def runSyncUnsafe() = collect[T](stream)
   }
 
-  implicit class KyoTestExt[T](kyo: T < (Abort[Throwable] & Env[DataSource] & S))(implicit runtime: KyoImplicitSyntax.Implicit[DataSource]) {
-    def runSyncUnsafe() = collect[T](kyo)
+  implicit class KyoTestExt[T](t: T) {
+    def runSyncUnsafe() = collect[T](t)
   }
 }

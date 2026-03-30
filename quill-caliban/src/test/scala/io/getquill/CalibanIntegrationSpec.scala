@@ -1,6 +1,6 @@
 package io.getquill
 
-import zio.{ZIO, Task}
+
 import io.getquill.context.ZioJdbc._
 import caliban.execution.Field
 import caliban.schema.ArgBuilder

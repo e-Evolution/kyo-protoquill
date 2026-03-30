@@ -3,13 +3,13 @@ package io.getquill
 import caliban.graphQL
 import caliban.schema.Annotations.GQLDescription
 import caliban.RootResolver
-import zio.{ExitCode, ZIO}
+
 import io.getquill.*
 import io.getquill.context.qzio.ImplicitSyntax.*
 import io.getquill.context.ZioJdbc.*
 import io.getquill.util.LoadConfig
-import zio.Console.printLine
-import zio.{ExitCode, Task, URIO, ZIOApp}
+
+
 
 import java.io.Closeable
 import javax.sql.DataSource
@@ -21,8 +21,8 @@ import io.getquill.util.ContextLogger
 import io.getquill.NestedSchema.*
 import caliban.schema.Schema.auto.*
 import caliban.schema.ArgBuilder.auto.*
-import zio.json.JsonEncoder
-import zio.json.JsonDecoder
+
+
 import caliban._
 import caliban.quick._ 
 

@@ -1,11 +1,11 @@
 package io.getquill
 
-import zio.ZIO
-import zio.UIO
-import io.getquill.context.{ExecutionInfo, ZioQuillLog}
+import kyo.*
 
-def getLastExecutedQuery(): UIO[Option[String]] =
-  ZioQuillLog.latestSqlQuery.get
+import io.getquill.context.{ExecutionInfo, KyoQuillLog}
 
-def getLastExecutionInfo(): UIO[Option[ExecutionInfo]] =
-  ZioQuillLog.latestExecutionInfo.get
+def getLastExecutedQuery(): Option[String] < Local[Option[String]] =
+  KyoQuillLog.latestSqlQuery.get
+
+def getLastExecutionInfo(): Option[ExecutionInfo] < Local[Option[ExecutionInfo]] =
+  KyoQuillLog.latestExecutionInfo.get

@@ -8,10 +8,7 @@ object KyoQuillLog {
 
   final class ExecutionInfoAware(val executionInfo: () => ExecutionInfo) { self =>
     def apply[A, S](kyo: A < S): A < S =
-      for {
-        _ <- latestExecutionInfo.set(Some(executionInfo()))
-        result <- kyo
-      } yield result
+      latestExecutionInfo.let(Some(executionInfo()))(kyo)
   }
 
   def withExecutionInfo(info: => ExecutionInfo): ExecutionInfoAware =
@@ -24,10 +21,7 @@ object KyoQuillLog {
   final class SqlQueryAware(val sqlQuery: () => String) {
     self =>
     def apply[A, S](kyo: A < S): A < S =
-      for {
-        _ <- latestSqlQuery.set(Some(sqlQuery()))
-        result <- kyo
-      } yield result
+      latestSqlQuery.let(Some(sqlQuery()))(kyo)
   }
 
   def withSqlQuery(sqlQuery: => String): SqlQueryAware =
