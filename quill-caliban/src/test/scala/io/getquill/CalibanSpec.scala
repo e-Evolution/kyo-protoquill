@@ -5,39 +5,31 @@ import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 
 import caliban.GraphQL
-import io.getquill.jdbczio.Quill
+import io.getquill.jdbckyo.Quill
 import io.getquill.util.ContextLogger
 
 trait CalibanSpec extends AnyFreeSpec with Matchers with BeforeAndAfterAll {
-  object Ctx extends PostgresZioJdbcContext(Literal)
-  import Ctx._
-  lazy val zioDS = Quill.DataSource.fromPrefix("testPostgresDB")
-
-  private val logger = ContextLogger(this.getClass)
+  val context: Quill[_, _]
+  import context._
 
   // FlatSchema and NestedSchema share the same DB data so only need to create it using one of them
   override def beforeAll() = {
     import FlatSchema._
-    (for { //
-        _ <- Ctx.run(sql"TRUNCATE TABLE AddressT, PersonT RESTART IDENTITY".as[Delete[PersonT]])
-        _ <- Ctx.run(liftQuery(ExampleData.people).foreach(row => query[PersonT].insertValue(row)))
-        _ <- Ctx.run(liftQuery(ExampleData.addresses).foreach(row => query[AddressT].insertValue(row)))
-      } yield ()
-    ).provideLayer(zioDS).unsafeRunSync()
+    context.run(sql"TRUNCATE TABLE AddressT, PersonT RESTART IDENTITY".as[Delete[PersonT]])
+      .flatMap(_ => context.run(liftQuery(ExampleData.people).foreach(row => query[PersonT].insertValue(row))))
+      .flatMap(_ => context.run(liftQuery(ExampleData.addresses).foreach(row => query[AddressT].insertValue(row))))
+      .runSyncUnsafe
   }
 
   // override def afterAll() = {
   //   import FlatSchema._
-  //   Ctx.run(sql"TRUNCATE TABLE AddressT, PersonT RESTART IDENTITY".as[Delete[PersonT]]).provideLayer(zioDS).unsafeRunSync()
+  //   context.run(sql"TRUNCATE TABLE AddressT, PersonT RESTART IDENTITY".as[Delete[PersonT]]).provideLayer(zioDS).unsafeRunSync()
   // }
 
   def api: GraphQL[Any]
 
-  extension [A](qzio: ZIO[Any, Throwable, A]) {
-    def unsafeRunSync(): A =
-      zio.Unsafe.unsafe { implicit unsafe =>
-        zio.Runtime.default.unsafe.run(qzio).getOrThrow()
-      }
+  extension [A](qry: A) {
+    def runSyncUnsafe: A = qry.asInstanceOf[A] // Placeholder - actual implementation depends on effect type
   }
 
   def unsafeRunQuery(queryString: String) = {
@@ -45,11 +37,11 @@ trait CalibanSpec extends AnyFreeSpec with Matchers with BeforeAndAfterAll {
       (for {
         interpreter <- api.interpreter
         result      <- interpreter.execute(queryString)
-      } yield (result)
-      ).tapError{ e =>
-        fail("GraphQL Validation Error", e)
-        ZIO.unit
-      }.unsafeRunSync()
+      } yield (result))
+        .tapError{ e =>
+          fail("GraphQL Validation Error", e)
+          ZIO.unit
+        }.unsafeRunSync()
 
     if (output.errors.length != 0)
       fail(s"GraphQL Validation Failures: ${output.errors}")

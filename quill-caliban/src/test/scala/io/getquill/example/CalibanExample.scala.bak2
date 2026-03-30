@@ -5,9 +5,13 @@ import caliban.schema.Annotations.GQLDescription
 import caliban._
 import caliban.quick._ 
 
+
+
 import io.getquill._
-import io.getquill.context.KyoImplicitSyntax._
+import io.getquill.context.qzio.ImplicitSyntax._
+import io.getquill.context.ZioJdbc._
 import io.getquill.util.LoadConfig
+
 
 import java.io.Closeable
 import javax.sql.DataSource
@@ -18,17 +22,18 @@ import caliban.schema.ArgBuilder
 import io.getquill.CalibanIntegration._
 import io.getquill.util.ContextLogger
 import io.getquill
-import io.getquill.NestedSchema.*
+import io.getquill.FlatSchema._
 import caliban.schema.Schema.auto._
 import caliban.schema.ArgBuilder.auto._
 
+
 import caliban._
 
-object DaoNested {
-  case class PersonAddressPlanQuery(plan: String, pa: List[PersonAddressNested])
-  private val logger = ContextLogger(classOf[DaoNested.type])
+object Dao {
+  case class PersonAddressPlanQuery(plan: String, pa: List[PersonAddress])
+  private val logger = ContextLogger(classOf[Dao.type])
 
-  object Ctx extends PostgresKyoJdbcContext(Literal)
+  object Ctx extends PostgresZioJdbcContext(Literal)
   import Ctx._
   lazy val ds = JdbcContextConfig(LoadConfig("testPostgresDB")).dataSource
   given Implicit[DataSource] = Implicit(ds)
@@ -36,7 +41,7 @@ object DaoNested {
   inline def q(inline columns: List[String], inline filters: Map[String, String]) =
     quote {
       query[PersonT].leftJoin(query[AddressT]).on((p, a) => p.id == a.ownerId)
-        .map((p, a) => PersonAddressNested(p.id, p.name, p.age, a.map(_.street)))
+        .map((p, a) => PersonAddress(p.id, p.first, p.last, p.age, a.map(_.street)))
         .filterColumns(columns)
         .filterByKeys(filters)
         .take(10)
@@ -52,12 +57,11 @@ object DaoNested {
     })
   }
 
-  def personAddressPlan(columns: List[String], filters: Map[String, String]) = {
+  def personAddressPlan(columns: List[String], filters: Map[String, String]) =
     run(plan(columns, filters), OuterSelectWrap.Never).map(_.mkString("\n")).implicitDS.mapError(e => {
       logger.underlying.error("personAddressPlan query failed", e)
       e
     })
-  }
 
   def resetDatabase() =
     (for {
@@ -65,46 +69,44 @@ object DaoNested {
       _ <- run(liftQuery(ExampleData.people).foreach(row => query[PersonT].insertValue(row)))
       _ <- run(liftQuery(ExampleData.addresses).foreach(row => query[AddressT].insertValue(row)))
     } yield ()).implicitDS
-} // end DaoNested
+} // end Dao
 
-object CalibanExampleNested {
+object CalibanExample extends zio.ZIOAppDefault {
+
   case class Queries(
-      personAddress: Field => (ProductArgs[PersonAddressNested] => Task[List[PersonAddressNested]]),
-      personAddressPlan: Field => (ProductArgs[PersonAddressNested] => Task[DaoNested.PersonAddressPlanQuery])
+      personAddress: Field => (ProductArgs[PersonAddress] => Task[List[PersonAddress]]),
+      personAddressPlan: Field => (ProductArgs[PersonAddress] => Task[Dao.PersonAddressPlanQuery])
   )
 
-  val api = graphQL(
-    RootResolver(
-      Queries(
-        personAddress =>
-          (productArgs =>
-            DaoNested.personAddress(quillColumns(personAddress), productArgs.keyValues)
-          ),
-        personAddressPlan =>
-          (productArgs =>
-            (DaoNested.personAddressPlan(quillColumns(personAddress), productArgs.keyValues)
-              zip DaoNested.personAddress(quillColumns(personAddress), productArgs.keyValues))
-              .map { case (pa, plan) => DaoNested.PersonAddressPlanQuery(pa, plan) }
-          )
-      )
-    ),
-    Nil, // directives
-    Nil, // schemaDirectives
-    None // schemaDescription
-  )
-
-  def main(args: Array[String]): Unit = {
-    val ds = JdbcContextConfig(LoadConfig("testPostgresDB")).dataSource
-    val app = for {
-      _ <- DaoNested.resetDatabase()
-      _ <- api.interpreter.flatMap { interpreter =>
-        interpreter.runServer(
-          port = 8088,
-          apiPath = "/api/graphql",
-          graphiqlPath = Some("/graphiql")
+  val endpoints =
+     graphQL(
+      RootResolver(
+        Queries(
+          personAddress =>
+            (productArgs =>
+              Dao.personAddress(quillColumns(personAddress), productArgs.keyValues)
+            ),
+          personAddressPlan =>
+            (productArgs => {
+              val cols = quillColumns(personAddressPlan)
+              (Dao.personAddressPlan(cols, productArgs.keyValues) zip Dao.personAddress(cols, productArgs.keyValues)).map(
+                (pa, plan) => Dao.PersonAddressPlanQuery(pa, plan)
+              )
+            })
         )
-      }
-    } yield ()
-    app.runSyncUnsafe(ds)
-  }
-} // end CalibanExampleNested
+      )
+    )
+
+  val myApp = for {
+    _ <- Dao.resetDatabase()
+    - <- endpoints.runServer(
+            port = 8088,
+            apiPath = "/api/graphql",
+            graphiqlPath = Some("/graphiql")
+    )
+  } yield ()
+
+  override def run =
+    myApp.exitCode
+
+} // end CalibanExample

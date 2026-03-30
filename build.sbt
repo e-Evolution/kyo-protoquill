@@ -186,7 +186,7 @@ lazy val `quill-caliban` =
         "org.scalatest" %% "scalatest" % scalatestVersion % Test,
         "org.scalatest" %% "scalatest-mustmatchers" % scalatestVersion % Test,
         "org.postgresql" % "postgresql" % "42.7.13" % Test,
-        "io.getkyo" %% "kyo-zio-test" % kyoVersion % Test
+        "io.getkyo" %% "kyo-caliban" % kyoVersion
       )
     )
     .dependsOn(`quill-jdbc-zio` % "compile->compile")
