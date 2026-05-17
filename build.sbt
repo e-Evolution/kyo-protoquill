@@ -13,7 +13,7 @@ inThisBuild(
     scmInfo := Some(
       ScmInfo(url("https://github.com/getkyo/kyo-protoquill"), "git:git@github.com:getkyo/kyo-protoquill.git")
     ),
-    version := "4.8.7",
+    version := "4.8.8",
     versionScheme := Some("always"),
   )
 )
@@ -87,7 +87,7 @@ val filteredModules = {
 }
 
 val zioQuillVersion = "4.8.5"
-val kyoVersion = "1.0-RC1"
+val kyoVersion = "1.0.0-RC2"
 val zioJsonVersion = "0.8.0"
 
 ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-collection-compat" % "always"
@@ -179,7 +179,7 @@ lazy val `quill-caliban` =
     .settings(
       Test / fork := true,
       libraryDependencies ++= Seq(
-        "com.github.ghostdogpr" %% "caliban-quick" % "2.11.2",
+        "com.github.ghostdogpr" %% "caliban-quick" % "3.0.0",
         // Adding this to main dependencies would force users to use logback-classic for SLF4j unless the specifically remove it
         // seems to be safer to just exclude & add a commented about need for a SLF4j implementation in Docs.
         "ch.qos.logback" % "logback-classic" % "1.6.2" % Test,
