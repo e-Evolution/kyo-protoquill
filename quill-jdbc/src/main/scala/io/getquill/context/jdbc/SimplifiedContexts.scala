@@ -132,7 +132,7 @@ trait SqlServerExecuteOverride[+N <: NamingStrategy] extends JdbcContextVerbExec
               // https://github.com/slick/slick/blob/06ccee3cdc0722adeb8bb0658afb4a0d3524b119/slick/src/main/scala/slick/jdbc/JdbcActionComponent.scala#L654
               // Therefore slick falls back to single-row-insert batching when insertion with getGeneratedKeys is used
               //
-              // However, in ProtoQuill we can do a little better. In this case we take advantage of multi-row inserts
+              // However, in Kyo Quill we can do a little better. In this case we take advantage of multi-row inserts
               // (via multiple VALUES clauses) each of which is a an element of the `prepares` list. That way, we only
               // need to execute `extractResult(ps.executeQuery(),...)` once per every insert-query (where each query
               // could potentially have 1000+ insert-rows via 1000 VALUES-clauses). This radically decreases

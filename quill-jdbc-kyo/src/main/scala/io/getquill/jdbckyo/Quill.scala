@@ -5,6 +5,8 @@ import io.getquill.context.jdbc.{H2JdbcTypes, MysqlJdbcTypes, OracleJdbcTypes, P
 import java.sql.Connection
 import scala.annotation.targetName
 
+// ─── Synchronous dialect classes (unchanged) ───
+
 class Postgres[+N <: NamingStrategy](val naming: N, override val ds: javax.sql.DataSource)
     extends Quill[PostgresDialect, N] with PostgresJdbcTypes[PostgresDialect, N] {
   val idiom: PostgresDialect = PostgresDialect

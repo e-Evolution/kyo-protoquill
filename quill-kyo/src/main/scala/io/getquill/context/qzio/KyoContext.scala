@@ -12,8 +12,8 @@ trait KyoContext[+Idiom <: io.getquill.idiom.Idiom, +Naming <: NamingStrategy]
   type Error
   type Environment
 
-  override type StreamResult[T] = Stream[T, (Abort[Error] & Async)]
-  override type Result[T] = T < (Abort[Error] & Async)
+  override type StreamResult[T] = Stream[T, (Abort[Error] & Env[Environment] & IO & Async & Scope)]
+  override type Result[T] = T < (Abort[Error] & Env[Environment] & IO & Async)
   override type RunQueryResult[T] = List[T]
   override type RunQuerySingleResult[T] = T
 

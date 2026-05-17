@@ -352,7 +352,7 @@ object ElaborateStructure {
    *   val decoding = MappedDecoding ...
    * }}
    * Since we only have decoders, we need to know that VerifiedName is an actual value
-   * type as opposed to an embedded case class (since ProtoQuill does not require presence
+   * type as opposed to an embedded case class (since Kyo Quill does not require presence
    * of the 'Embedded' type). So we need to know that VerifiedName is going to be:
    * {{ Term(x, Leaf)) }}
    * as opposed what we would generically have thought:

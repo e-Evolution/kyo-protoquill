@@ -1,40 +1,43 @@
 # Introduction
 
-Kyo-ProtoQuill is the [Kyo](https://github.com/getkyo/kyo) effect system version of [ProtoQuill](https://github.com/zio/zio-protoquill) — the Scala 3 compile-time Language Integrated Queries library. This fork replaces ZIO with **Kyo's algebraic effect system** for async/resource handling while preserving all Quill functionality.
+Kyo Quill is the [Kyo](https://github.com/getkyo/kyo)-native Scala 3 compile-time Language Integrated Queries library. Originally based on [ProtoQuill](https://github.com/zio/zio-protoquill), the project has fully migrated to **Kyo's algebraic effect system** for async/resource handling while preserving all Quill functionality.
 
-For those migrating from ZIO-ProtoQuill, the core Quill DSL (`quote`, `query`, `run`, `inline def`, etc.) remains identical. Only the effect layer changes: `ZIO[R, E, A]` becomes `A < (Abort[E] & Env[R] & Async)` and `ZLayer` becomes direct dependency passing or Kyo `Layer`.
+For those migrating from ZIO Quill, the core Quill DSL (`quote`, `query`, `run`, `inline def`, etc.) remains identical. Only the effect layer changes: `ZIO[R, E, A]` becomes `A < (Abort[E] & Env[R] & Async)` and `ZLayer` becomes direct dependency passing or Kyo `Layer`.
 
 Currently Supported:
- - Basic Quotation, Querying, Lifting, and Types (Compile-Time and Dynamic)
- - Inner/Outer, Left/Right joins
- - Query.map/flatMap/concatMap/filter and other query constructs
- - Insert, Update, Delete Actions (Compile-Time and Dynamic)
- - Batch Insert, Batch Update, and Batch Delete Actions
- - **Kyo** and Synchronous JDBC contexts
- - SQL OnConflict Clauses
- - Prepare Query (i.e. `context.prepare(query)`)
- - Translate Query (i.e. `context.translate(query)`)
- - Cassandra Contexts (using V4 drivers)
- - Dynamic Query API
- - **Caliban Integration via kyo-caliban** (native Kyo effect types in GraphQL resolvers)
+
+- Basic Quotation, Querying, Lifting, and Types (Compile-Time and Dynamic)
+- Inner/Outer, Left/Right joins
+- Query.map/flatMap/concatMap/filter and other query constructs
+- Insert, Update, Delete Actions (Compile-Time and Dynamic)
+- Batch Insert, Batch Update, and Batch Delete Actions
+- **Kyo** and Synchronous JDBC contexts
+- SQL OnConflict Clauses
+- Prepare Query (i.e. `context.prepare(query)`)
+- Translate Query (i.e. `context.translate(query)`)
+- Cassandra Contexts (using V4 drivers)
+- Dynamic Query API
+- **Caliban Integration via kyo-caliban** (native Kyo effect types in GraphQL resolvers)
 
 Not Supported:
- - Implicit class based extensions. See the [Extensions](#extensions) section below.
 
-There are also quite a few features that ProtoQuill has:
- - Scala Methods and Typeclasses Transforming ProtoQuill queries (see [Shareable Code](#shareable-code) and [Advanced Example](#advanced-example)).
- - [Custom Parsing](#custom-parsing)
- - [Co-Product Rows](#co-product-rows) (Highly experimental)
- - [Caliban-Integration](#caliban-integration) (Deep integration with Caliban using native Kyo effects)
+- Implicit class based extensions. See the [Extensions](#extensions) section below.
 
+There are also quite a few features that Kyo Quill has:
+
+- Scala Methods and Typeclasses Transforming Kyo Quill queries (see [Shareable Code](#shareable-code) and [Advanced Example](#advanced-example)).
+- [Custom Parsing](#custom-parsing)
+- [Co-Product Rows](#co-product-rows) (Highly experimental)
+- [Caliban-Integration](#caliban-integration) (Deep integration with Caliban using native Kyo effects)
 
 # Getting Started
 
-The simplest way to get started with Kyo-ProtoQuill is with the standard JDBC contexts.
+The simplest way to get started with Kyo Quill is with the standard JDBC contexts.
 These are synchronous so for a high-throughput system you will ultimately need to switch
 to the Kyo-based contexts which leverage Kyo's `Async` and `Scope` effects.
 
 Add the following to your SBT file:
+
 ```scala
 val kyoVersion = "1.0-RC1"
 
@@ -53,6 +56,7 @@ libraryDependencies ++= Seq(
 ```
 
 Assuming we are using Postgres, add the following `application.conf`:
+
 ```
 testPostgresDB.dataSourceClassName=org.postgresql.ds.PGSimpleDataSource
 testPostgresDB.dataSource.databaseName=<my-database>
@@ -60,6 +64,7 @@ testPostgresDB.dataSource.url=<my-jdbc-url>
 ```
 
 Create a context and a case class representing your table:
+
 ```scala
 import io.getquill._
 
@@ -117,27 +122,27 @@ type QCIO[T] = T < (Abort[SQLException] & Env[Connection] & kyo.IO & Async)
 
 ### ZIO to Kyo Migration Reference
 
-| ZIO 2 | Kyo | Description |
-|--------|-----|-------------|
-| `ZIO[R, E, A]` | `A < (Abort[E] & Env[R] & Async)` | Effects with environment and errors |
-| `ZIO.succeed(x)` | `x` (pure value) | Success without effects |
-| `ZIO.fail(e)` | `Abort.fail(e)` | Fail with typed error |
-| `ZIO.attempt(body)` | `Abort.catching[Throwable](body)` | Suspend effects catching exceptions |
-| `ZIO.environment[R]` | `Env.get[R]` | Get dependency |
-| `ZLayer` | Direct passing or `Layer[Out, S]` | Dependency layers |
-| `ZStream[R, E, A]` | `Stream[A, S]` | Effectful streams |
-| `Scope.global` | `Scope.run` | Resource scope |
-| `ZIO.acquireRelease` | `Scope.acquireRelease` | Acquire/Release |
-| `FiberRef` | `Local[T]` | Fiber-local state |
-| `Runtime.unsafeRun` | `KyoApp` | Effect execution |
-| `zio.Task[A]` | `A < (Abort[Throwable] & Async)` | Task effect type |
-
+| ZIO 2                | Kyo                               | Description                         |
+| -------------------- | --------------------------------- | ----------------------------------- |
+| `ZIO[R, E, A]`       | `A < (Abort[E] & Env[R] & Async)` | Effects with environment and errors |
+| `ZIO.succeed(x)`     | `x` (pure value)                  | Success without effects             |
+| `ZIO.fail(e)`        | `Abort.fail(e)`                   | Fail with typed error               |
+| `ZIO.attempt(body)`  | `Abort.catching[Throwable](body)` | Suspend effects catching exceptions |
+| `ZIO.environment[R]` | `Env.get[R]`                      | Get dependency                      |
+| `ZLayer`             | Direct passing or `Layer[Out, S]` | Dependency layers                   |
+| `ZStream[R, E, A]`   | `Stream[A, S]`                    | Effectful streams                   |
+| `Scope.global`       | `Scope.run`                       | Resource scope                      |
+| `ZIO.acquireRelease` | `Scope.acquireRelease`            | Acquire/Release                     |
+| `FiberRef`           | `Local[T]`                        | Fiber-local state                   |
+| `Runtime.unsafeRun`  | `KyoApp`                          | Effect execution                    |
+| `zio.Task[A]`        | `A < (Abort[Throwable] & Async)`  | Task effect type                    |
 
 # Tutorial
 
 ## Queries
 
-ProtoQuill queries are built using inline quoted expressions.
+Kyo Quill queries are built using inline quoted expressions.
+
 ```scala
 // With just this import you can use quote, query, insert/update/delete and lazyLift
 import io.getquill._
@@ -153,7 +158,7 @@ run(joes)
 // SELECT p.name, p.age FROM Person p WHERE p.name = 'Joe'
 ```
 
-> You *do not* need to import a context in ProtoQuill to make a quotation, just `io.getquill._`. Contexts are only needed for lifting.
+> You _do not_ need to import a context in Kyo Quill to make a quotation, just `io.getquill._`. Contexts are only needed for lifting.
 
 ### Quotation is (Mostly) Optional
 
@@ -168,6 +173,7 @@ run(joes)
 ```
 
 However, if parts of the query are dynamic (i.e. not `inline def`) it is needed:
+
 ```scala
 inline def people = quote {
   query[Person]
@@ -183,17 +189,19 @@ run(joes)
 ### Quoted Operations
 
 ProtoQuill supports Quill `query[T]` constructs including:
- - Outer/Inner, Left/Right Join (both monadic and applicative)
- - Map, FlatMap, ConcatMap
- - Union, Union-All
- - Distinct, Nested
- - querySchema
 
-Keep in mind that in ProtoQuill for these to generate compile-time queries, they need to be `inline def`.
+- Outer/Inner, Left/Right Join (both monadic and applicative)
+- Map, FlatMap, ConcatMap
+- Union, Union-All
+- Distinct, Nested
+- querySchema
+
+Keep in mind that in Kyo Quill for these to generate compile-time queries, they need to be `inline def`.
 
 ### Batch Queries
 
-ProtoQuill supports Insert/Update/Delete actions as well as their batch variations:
+Kyo Quill supports Insert/Update/Delete actions as well as their batch variations:
+
 ```scala
 // batch queries with different entities
 liftQuery(vips).foreach(v => query[Person].insertValue(Person(v.first + v.last, v.age)))
@@ -211,6 +219,7 @@ liftQuery(vips).foreach(v => query[Person].insertValue(Person(v.first + v.last, 
 ### Metas
 
 QueryMeta, SchemaMeta, InsertMeta, and UpdateMeta are supported:
+
 ```scala
 // SchemaMeta
 inline given SchemaMeta[Person] = schemaMeta("PersonTable", name -> "nameRow")
@@ -269,6 +278,7 @@ val joes = people.onlyJoes
 ## Lifting and Lazy Lifting
 
 Since Quill-Quotations define blocks of compile-time-inspectable code, adding variables whose value is only known during runtime typically requires lifting:
+
 ```scala
 // NOTE: Be sure to import a context first!
 // val ctx = new MirrorSqlContext(PostgresDialect, Literal); import ctx._
@@ -301,6 +311,7 @@ inline def q = quote { query[Person].filter(p => p.name == lift(name)) }
 ## Filtering Tables by Key/Values
 
 One typical use-case that ProtoQuill handles well is filtering a query based on an arbitrary group of column/value pairs. This is typically done with Http-Based systems where URL-parameters `&key=value` are decoded as a map. In ProtoQuill, `filterByKeys` addresses this use-case.
+
 ```scala
 val values: Map[String, String] = Map("firstName" -> "Joe", "age" -> "22")
 
@@ -340,6 +351,7 @@ val lastInfo: Option[ExecutionInfo] < Local[Option[ExecutionInfo]] = getLastExec
 Co-Products are supported using Enums and sealed traits:
 
 1. Create the Coproduct:
+
    ```scala
    object StaticEnumExample {
      enum Shape(val id: Int):
@@ -349,13 +361,14 @@ Co-Products are supported using Enums and sealed traits:
    ```
 
 2. Create a row-typer:
+
    ```scala
    given RowTyper[Shape] with
      def apply(row: Row) =
        row.apply[String]("type") match
          case "square" => classTag[Shape.Square]
          case "circle" => classTag[Shape.Circle]
-    ```
+   ```
 
 3. Create and run your query:
    ```scala
@@ -368,6 +381,7 @@ Co-Products are supported using Enums and sealed traits:
 The Parser API allows you to define custom parsing for user-defined logic:
 
 1. Define your business logic:
+
    ```scala
    object MyBusinessLogic:
      extension (i: Int)
@@ -375,6 +389,7 @@ The Parser API allows you to define custom parsing for user-defined logic:
    ```
 
 2. Define a parser (in a separate compilation unit):
+
    ```scala
    import io.getquill.parser._
    import io.getquill.ast.{ Ast, Infix }
@@ -406,34 +421,37 @@ The Parser API allows you to define custom parsing for user-defined logic:
 
 ## Migration Notes
 
- - Most Scala2-Quill code should either work in ProtoQuill directly or require minimal changes.
-   However, since ProtoQuill compile-time queries rely on `inline def`, these queries must be changed from:
-   ```scala
-   val people = quote { query[Person] }
-   val joes = quote { people.filter(p => p.name == "Joe") }
-   run(joes) // Dynamic Query Detected
-   ```
-   To:
-   ```scala
-   inline def people = quote { query[Person] }
-   inline def joes = quote { people.filter(p => p.name == "Joe") }
-   run(joes) // SELECT p.name, p.age FROM Person p WHERE p.name = 'Joe'
-   ```
+- Most Scala2-Quill code should either work in Kyo Quill directly or require minimal changes.
+  However, since Kyo Quill compile-time queries rely on `inline def`, these queries must be changed from:
 
- - If migrating from ZIO-ProtoQuill:
-   - Replace `"io.getquill" %% "quill-jdbc-zio"` with `"io.getquill" %% "quill-jdbc-kyo"`
-   - Replace `"io.getquill" %% "quill-cassandra-zio"` with `"io.getquill" %% "quill-cassandra-kyo"`
-   - Replace `import zio._` with `import kyo.*`
-   - Replace `ZIO.attempt { ... }` with `Abort.catching[Throwable] { ... }`
-   - Replace `ZIO.succeed(x)` with just `x` (pure values are computations in Kyo)
-   - Replace `ZIO.fail(e)` with `Abort.fail(e)`
-   - Replace `zio.Task[A]` with `A < (Abort[Throwable] & Async)` or define a type alias
-   - Replace `.provideLayer(layer)` with direct DataSource passing to context constructor
-   - ZIO `FiberRef` becomes Kyo `Local[T]`
+  ```scala
+  val people = quote { query[Person] }
+  val joes = quote { people.filter(p => p.name == "Joe") }
+  run(joes) // Dynamic Query Detected
+  ```
+
+  To:
+
+  ```scala
+  inline def people = quote { query[Person] }
+  inline def joes = quote { people.filter(p => p.name == "Joe") }
+  run(joes) // SELECT p.name, p.age FROM Person p WHERE p.name = 'Joe'
+  ```
+
+- If migrating from ZIO Quill:
+  - Replace `"io.getquill" %% "quill-jdbc-zio"` with `"io.getquill" %% "quill-jdbc-kyo"`
+  - Replace `"io.getquill" %% "quill-cassandra-zio"` with `"io.getquill" %% "quill-cassandra-kyo"`
+  - Replace `import zio._` with `import kyo.*`
+  - Replace `ZIO.attempt { ... }` with `Abort.catching[Throwable] { ... }`
+  - Replace `ZIO.succeed(x)` with just `x` (pure values are computations in Kyo)
+  - Replace `ZIO.fail(e)` with `Abort.fail(e)`
+  - Replace `zio.Task[A]` with `A < (Abort[Throwable] & Async)` or define a type alias
+  - Replace `.provideLayer(layer)` with direct DataSource passing to context constructor
+  - ZIO `FiberRef` becomes Kyo `Local[T]`
 
 # Extensions
 
-ProtoQuill supports standard Dotty extensions. An inline extension will yield a compile-time query.
+Kyo Quill supports standard Dotty extensions. An inline extension will yield a compile-time query.
 
 ```scala
 case class Person(first: String, last: String)
@@ -550,13 +568,13 @@ output.data.toString
 
 ### Key Differences from ZIO-Caliban
 
-| ZIO Approach | Kyo Approach |
-|---|---|
-| `zio.Task[A]` return type | `A < (Abort[Throwable] & Async)` return type |
-| `zio.ZIO.attempt { ... }` | `Abort.catching[Throwable] { ... }` |
+| ZIO Approach                               | Kyo Approach                                               |
+| ------------------------------------------ | ---------------------------------------------------------- |
+| `zio.Task[A]` return type                  | `A < (Abort[Throwable] & Async)` return type               |
+| `zio.ZIO.attempt { ... }`                  | `Abort.catching[Throwable] { ... }`                        |
 | `import caliban.schema.Schema.auto._` only | `import caliban.schema.Schema.auto._` + `import kyo.given` |
-| `.provideLayer(dataSourceLayer)` | Direct DataSource via context constructor |
-| `zip` for parallel composition | `for/yield` Kyo composition |
+| `.provideLayer(dataSourceLayer)`           | Direct DataSource via context constructor                  |
+| `zip` for parallel composition             | `for/yield` Kyo composition                                |
 
 The `import kyo.given` is essential - it brings in `caliban.schema.Schema` instances for Kyo effect types (`A < S`), which automatically bridge Kyo effects to ZIO for Caliban's internal execution engine.
 
@@ -590,11 +608,14 @@ object CalibanServer {
 ### How Caliban Column Filtering Works
 
 When `.filterColumns(columns)` and `.filterByKeys(filters)` are called, the query:
+
 ```sql
 SELECT p.id, p.first, p.last, p.age, a.street
 FROM Person p LEFT JOIN Address a ON p.id = a.ownerId
 ```
+
 Becomes:
+
 ```sql
 SELECT
   CASE WHEN ? THEN p.id ELSE null END,
@@ -615,16 +636,16 @@ The SQL optimizer can see into these `CASE WHEN` clauses when the condition is a
 
 # Module Architecture
 
-| Module | Description | Key Dependencies |
-|--------|-------------|-----------------|
-| `quill-sql` | Core SQL engine, macros, compile-time query generation | `kyo-core`, `kyo-prelude`, `kyo-data` |
-| `quill-jdbc` | Synchronous JDBC contexts (Postgres, MySQL, H2, SQLite, etc.) | `quill-sql` |
-| `quill-kyo` | Kyo effect type definitions (`KyoContext`, `KyoTranslateContext`) | `quill-sql`, `kyo-core` |
-| `quill-jdbc-kyo` | Kyo JDBC contexts with effect-based resource management | `quill-kyo`, `quill-jdbc` |
-| `quill-cassandra` | Cassandra base context | `quill-sql`, `java-driver-core` |
-| `quill-cassandra-kyo` | Cassandra with Kyo effects | `quill-cassandra`, `quill-kyo` |
-| `quill-doobie` | Doobie integration | `quill-jdbc`, `doobie-core` |
-| `quill-caliban` | Caliban GraphQL integration with native Kyo effects | `quill-jdbc-kyo`, `kyo-caliban` |
+| Module                | Description                                                       | Key Dependencies                      |
+| --------------------- | ----------------------------------------------------------------- | ------------------------------------- |
+| `quill-sql`           | Core SQL engine, macros, compile-time query generation            | `kyo-core`, `kyo-prelude`, `kyo-data` |
+| `quill-jdbc`          | Synchronous JDBC contexts (Postgres, MySQL, H2, SQLite, etc.)     | `quill-sql`                           |
+| `quill-kyo`           | Kyo effect type definitions (`KyoContext`, `KyoTranslateContext`) | `quill-sql`, `kyo-core`               |
+| `quill-jdbc-kyo`      | Kyo JDBC contexts with effect-based resource management           | `quill-kyo`, `quill-jdbc`             |
+| `quill-cassandra`     | Cassandra base context                                            | `quill-sql`, `java-driver-core`       |
+| `quill-cassandra-kyo` | Cassandra with Kyo effects                                        | `quill-cassandra`, `quill-kyo`        |
+| `quill-doobie`        | Doobie integration                                                | `quill-jdbc`, `doobie-core`           |
+| `quill-caliban`       | Caliban GraphQL integration with native Kyo effects               | `quill-jdbc-kyo`, `kyo-caliban`       |
 
 # Building and Testing
 

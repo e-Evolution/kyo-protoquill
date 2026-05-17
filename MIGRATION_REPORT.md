@@ -1,3 +1,6 @@
+> **Historical Document** — The ZIO→Kyo migration was completed March 2026.
+> These files are retained for reference but are no longer active planning documents.
+
 # Migration Report: ZIO 2 → Kyo 1.0-RC1
 
 **Date:** March 30, 2026
@@ -15,14 +18,14 @@ All 8 modules of `kyo-protoquill` have been successfully migrated from ZIO 2.x t
 
 ## Modules Migrated
 
-| Module | Files Changed | Key Changes |
-|--------|--------------|-------------|
-| `quill-sql` | `build.sbt` | Added `kyo-core`, `kyo-prelude`, `kyo-data` dependencies |
-| `quill-kyo` | 3 files | Package `io.getquill.context.kyo` → `io.getquill.context.qkyo` |
-| `quill-jdbc-kyo` | 5 files | FQN updates, `inline def run` overloads, package renames |
-| `quill-cassandra-kyo` | 3 deleted | Removed `CassandraZioContext`, `CassandraZioSession`, `cassandrazio/Quill` |
-| `quill-caliban` | 5 files | Rewritten to native kyo-caliban (Kyo effect types, Schema given instances) |
-| `quill-doobie` | 2 files | `Transactor.after < Local(...)` → `Transactor.after.set(...)` |
+| Module                | Files Changed | Key Changes                                                                |
+| --------------------- | ------------- | -------------------------------------------------------------------------- |
+| `quill-sql`           | `build.sbt`   | Added `kyo-core`, `kyo-prelude`, `kyo-data` dependencies                   |
+| `quill-kyo`           | 3 files       | Package `io.getquill.context.kyo` → `io.getquill.context.qkyo`             |
+| `quill-jdbc-kyo`      | 5 files       | FQN updates, `inline def run` overloads, package renames                   |
+| `quill-cassandra-kyo` | 3 deleted     | Removed `CassandraZioContext`, `CassandraZioSession`, `cassandrazio/Quill` |
+| `quill-caliban`       | 5 files       | Rewritten to native kyo-caliban (Kyo effect types, Schema given instances) |
+| `quill-doobie`        | 2 files       | `Transactor.after < Local(...)` → `Transactor.after.set(...)`              |
 
 ---
 
@@ -47,6 +50,7 @@ All 8 modules of `kyo-protoquill` have been successfully migrated from ZIO 2.x t
 **Problem:** Three test files and two example files still referenced `import io.getquill.context.ZioJdbc._`, `ZIO[Any, Throwable, ...]`, `.provideLayer(zioDS)`, `ZIO.unit`, `.tapBoth`, and `.unsafeRunSync()`.
 
 **Fix:** Rewrote all files to use native kyo-caliban:
+
 - `zio.Task[A]` → `A < (Abort[Throwable] & Async)` (aliased as `KyoTask[A]`)
 - `zio.ZIO.attempt { ... }` → `Abort.catching[Throwable] { ... }`
 - Added `import kyo.given` for `Schema[R, A < S]` instances
@@ -74,11 +78,11 @@ All 8 modules of `kyo-protoquill` have been successfully migrated from ZIO 2.x t
 
 ## Remaining ZIO Dependencies
 
-| Location | Import | Justification |
-|----------|--------|--------------|
+| Location                       | Import                                | Justification                                  |
+| ------------------------------ | ------------------------------------- | ---------------------------------------------- |
 | `PostgresJsonExtensions.scala` | `zio.json.{JsonEncoder, JsonDecoder}` | JSON serialization library (data, not effects) |
-| `CalibanSpec.scala` | `zio.{Unsafe, Runtime}` | Caliban interpreter is ZIO-native |
-| `CalibanExample*.scala` | `zio.{Unsafe, Runtime}` | Caliban server runtime uses ZIO |
+| `CalibanSpec.scala`            | `zio.{Unsafe, Runtime}`               | Caliban interpreter is ZIO-native              |
+| `CalibanExample*.scala`        | `zio.{Unsafe, Runtime}`               | Caliban server runtime uses ZIO                |
 
 Core modules (`quill-kyo`, `quill-jdbc-kyo`, `quill-cassandra-kyo`) are 100% ZIO-free. Caliban uses ZIO internally (even `kyo-caliban` depends on `kyo-zio` for bridging).
 
@@ -86,15 +90,15 @@ Core modules (`quill-kyo`, `quill-jdbc-kyo`, `quill-cassandra-kyo`) are 100% ZIO
 
 ## Test Results
 
-| Module | Tests | Passed | Failed |
-|--------|-------|--------|--------|
-| `quill-sql` | 274 | 274 | 0 |
-| `quill-sql-tests` | 668 | 668 | 0 |
-| `quill-jdbc` (H2) | 65 | 65 | 0 |
-| `quill-jdbc` (PostgreSQL) | 148 | 148 | 0 |
-| `quill-doobie` (PostgreSQL) | 8 | 8 | 0 |
-| `quill-caliban` (PostgreSQL) | 8 | 8 | 0 |
-| **Total** | **1,171** | **1,171** | **0** |
+| Module                       | Tests     | Passed    | Failed |
+| ---------------------------- | --------- | --------- | ------ |
+| `quill-sql`                  | 274       | 274       | 0      |
+| `quill-sql-tests`            | 668       | 668       | 0      |
+| `quill-jdbc` (H2)            | 65        | 65        | 0      |
+| `quill-jdbc` (PostgreSQL)    | 148       | 148       | 0      |
+| `quill-doobie` (PostgreSQL)  | 8         | 8         | 0      |
+| `quill-caliban` (PostgreSQL) | 8         | 8         | 0      |
+| **Total**                    | **1,171** | **1,171** | **0**  |
 
 ---
 

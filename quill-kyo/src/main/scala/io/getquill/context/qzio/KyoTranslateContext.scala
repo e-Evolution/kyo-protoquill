@@ -13,7 +13,7 @@ trait KyoTranslateContext[+Dialect <: io.getquill.idiom.Idiom, +Naming <: Naming
   type Error
   type Environment
 
-  override type TranslateResult[T] = T < (Abort[Error] & Async)
+  override type TranslateResult[T] = T < (Abort[Error] & Env[Environment] & IO & Async)
 
   override def wrap[T](t: => T): TranslateResult[T] = t
 
@@ -21,5 +21,10 @@ trait KyoTranslateContext[+Dialect <: io.getquill.idiom.Idiom, +Naming <: Naming
     result.map(f)
 
   override def seq[A](list: List[TranslateResult[A]]): TranslateResult[List[A]] =
-    Async.collectAll(list).map(_.toList)
+    list.foldRight(wrap(List.empty[A])) { (elem, acc) =>
+      for {
+        a  <- elem
+        as <- acc
+      } yield a :: as
+    }
 }

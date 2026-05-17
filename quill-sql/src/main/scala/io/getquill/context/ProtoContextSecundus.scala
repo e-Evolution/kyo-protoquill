@@ -7,14 +7,14 @@ import io.getquill.ast.Ast
 import io.getquill.quat.Quat
 
 /**
- * A common context used between Quill and ProtoQuill. This is more like a pre-context because the actual `run`
+ * A common context used between Quill and Kyo Quill. This is more like a pre-context because the actual `run`
  * methods cannot be contained here since they use macros. Right now not all Scala2-Quill context extend
  * this context but hopefully they will all in the future. This will establish a common general-api that
  * Quill contexts can use.
- * In ProtoQuill, this context is used for the base of all other context and allows the Scala 3 macros
+ * In Kyo Quill, this context is used for the base of all other context and allows the Scala 3 macros
  * to call the `execute___` methods. In Scala2-Quill wherein macros are less strict about signatures,
  * this cannot be used for `Context` (in `Context.scala`) but various higher-level context extend it
- * as a guard-rail against API drift i.e. so that the Scala2-Quill and ProtoQuill internal-context
+ * as a guard-rail against API drift i.e. so that the Scala2-Quill and Kyo Quill internal-context
  * APIs remain largely the same.
  */
 trait ProtoContextSecundus[+Dialect <: io.getquill.idiom.Idiom, +Naming <: NamingStrategy] extends RowContext {
@@ -50,7 +50,7 @@ trait ProtoContextSecundus[+Dialect <: io.getquill.idiom.Idiom, +Naming <: Namin
  * at runtime (which would happen with a by-value property since `{ ExecutionInfo(stuff, ast) } is spliced
  * into a query-execution site). Additionally, there are performance overheads even splicing the finalized
  * version of the AST into call sites of the `run` functions. For this reason, this functionality
- * is being used only in ProtoQuill and only when a trait extends the trait AstSplicing.
+ * is being used only in Kyo Quill and only when a trait extends the trait AstSplicing.
  * In the future it might potentially be controlled by a compiler argument.
  */
 class ExecutionInfo(val executionType: ExecutionType, queryAst: => Ast, queryTopLevelQuat: => Quat) {

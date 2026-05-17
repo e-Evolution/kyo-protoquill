@@ -5,7 +5,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 inThisBuild(
   List(
     organization := "io.getquill",
-    homepage := Some(url("https://getkyo.io/kyo-protoquill")),
+    homepage := Some(url("https://getkyo.io/kyo-quill")),
     licenses := List(("Apache License 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
     developers := List(
       Developer("deusaquilus", "Alexander Ioffe", "", url("https://github.com/deusaquilus"))
@@ -13,6 +13,7 @@ inThisBuild(
     scmInfo := Some(
       ScmInfo(url("https://github.com/getkyo/kyo-protoquill"), "git:git@github.com:getkyo/kyo-protoquill.git")
     ),
+    version := "4.8.7",
     versionScheme := Some("always"),
   )
 )

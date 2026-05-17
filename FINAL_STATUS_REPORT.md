@@ -1,3 +1,6 @@
+> **Historical Document** — The ZIO→Kyo migration was completed March 2026.
+> These files are retained for reference but are no longer active planning documents.
+
 # Final Status Report - Migration to Kyo 1.0-RC1
 
 **Date:** March 30, 2026
@@ -15,18 +18,18 @@ Full migration of all 8 modules from ZIO 2.x to Kyo 1.0-RC1 is complete. Every m
 
 ## Results by Module
 
-| Module | Main Compile | Test Compile | Tests Run | Status |
-|--------|-------------|-------------|-----------|--------|
-| `quill-sql` | OK | OK | 274 passed | Validated |
-| `quill-sql-tests` | OK | OK | 668 passed | Validated |
-| `quill-jdbc` | OK | OK | 213 passed (H2 + Postgres) | Validated |
-| `quill-kyo` | OK | OK | Compiles, depends on DB | Validated |
-| `quill-jdbc-kyo` | OK | OK | Compiles, depends on DB | Validated |
-| `quill-doobie` | OK | OK | 8 passed (Postgres) | Validated |
-| `quill-cassandra` | OK | OK | Compiles, depends on Cassandra | Validated |
-| `quill-cassandra-kyo` | OK | OK | Compiles, depends on Cassandra | Validated |
-| `quill-caliban` | OK | OK | 8 passed (Postgres + kyo-caliban) | Validated |
-| **Total** | **9/9** | **9/9** | **1,171 passed, 0 failed** | |
+| Module                | Main Compile | Test Compile | Tests Run                         | Status    |
+| --------------------- | ------------ | ------------ | --------------------------------- | --------- |
+| `quill-sql`           | OK           | OK           | 274 passed                        | Validated |
+| `quill-sql-tests`     | OK           | OK           | 668 passed                        | Validated |
+| `quill-jdbc`          | OK           | OK           | 213 passed (H2 + Postgres)        | Validated |
+| `quill-kyo`           | OK           | OK           | Compiles, depends on DB           | Validated |
+| `quill-jdbc-kyo`      | OK           | OK           | Compiles, depends on DB           | Validated |
+| `quill-doobie`        | OK           | OK           | 8 passed (Postgres)               | Validated |
+| `quill-cassandra`     | OK           | OK           | Compiles, depends on Cassandra    | Validated |
+| `quill-cassandra-kyo` | OK           | OK           | Compiles, depends on Cassandra    | Validated |
+| `quill-caliban`       | OK           | OK           | 8 passed (Postgres + kyo-caliban) | Validated |
+| **Total**             | **9/9**      | **9/9**      | **1,171 passed, 0 failed**        |           |
 
 ---
 
@@ -55,6 +58,7 @@ Three legacy files with ZIO naming existed alongside their Kyo equivalents: `Cas
 Three test files (`CalibanSpec.scala`, `CalibanIntegrationSpec.scala`, `CalibanIntegrationNestedSpec.scala`) still referenced `import io.getquill.context.ZioJdbc._`, `ZIO[Any, Throwable, ...]`, `.provideLayer(zioDS)`, and `ZIO.unit`. Two example files had wrong constructor calls and broken `runSyncUnsafe`.
 
 **Fix:** Rewrote all 5 files to use native `kyo-caliban` API:
+
 - Resolver types use `A < (Abort[Throwable] & Async)` instead of `zio.Task[A]`
 - DAO methods use `Abort.catching[Throwable] { ... }` instead of `zio.ZIO.attempt { ... }`
 - `import kyo.given` brings `caliban.schema.Schema` instances for Kyo effect types
@@ -76,11 +80,11 @@ The `Transactor.after < Local(...)` lens syntax from Scala 2 breaks in Scala 3 b
 
 ## Remaining ZIO References
 
-| File | Import | Reason |
-|------|--------|--------|
+| File                           | Import                                | Reason                                         |
+| ------------------------------ | ------------------------------------- | ---------------------------------------------- |
 | `PostgresJsonExtensions.scala` | `zio.json.{JsonEncoder, JsonDecoder}` | JSON serialization library (data, not effects) |
-| `CalibanSpec.scala` | `zio.{Unsafe, Runtime}` | Caliban's interpreter returns ZIO natively |
-| `CalibanExample*.scala` | `zio.{Unsafe, Runtime}` | Caliban server runtime uses ZIO internally |
+| `CalibanSpec.scala`            | `zio.{Unsafe, Runtime}`               | Caliban's interpreter returns ZIO natively     |
+| `CalibanExample*.scala`        | `zio.{Unsafe, Runtime}`               | Caliban server runtime uses ZIO internally     |
 
 These are acceptable: Caliban is a ZIO-based library, and `kyo-caliban` itself depends on `kyo-zio` for bridging. The core Quill modules (`quill-kyo`, `quill-jdbc-kyo`, `quill-cassandra-kyo`) are 100% ZIO-free.
 

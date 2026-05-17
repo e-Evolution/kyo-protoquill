@@ -50,3 +50,9 @@ done.txt
 .history
 .jvmopts
 sqlline
+# Local Pi runtime state
+.atl/
+.pi/
+.claude/
+context.md
+openspec/

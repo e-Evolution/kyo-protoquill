@@ -22,7 +22,7 @@ class CassandraAsyncContext[+N <: NamingStrategy](
   extends CassandraCqlSessionContext[N](naming, session, preparedStatementCacheSize)
   /*with ScalaFutureIOMonad*/ {
 
-  // The ProtoQuill way of doing `implicit ec: ExceutionContext`.
+  // The Kyo Quill way of doing `implicit ec: ExceutionContext`.
   // This will cause the Context.scala `run` functions etc... summon an implicit
   // Runner from the context which we set to ExecutionContext here.
   // That is because Dotty macros cannot do arbitrary things like adding implicit
@@ -44,7 +44,7 @@ class CassandraAsyncContext[+N <: NamingStrategy](
   override type RunQuerySingleResult[T] = T
   override type RunActionResult = Unit
   override type RunBatchActionResult = Unit
-  // In ProtoQuill this is defined in CassandraRowContext and the Runner is ExecutionContext
+  // In Kyo Quill this is defined in CassandraRowContext and the Runner is ExecutionContext
   // override type Runner = Unit
 
   @targetName("runQueryDefault")
