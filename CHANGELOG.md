@@ -2,11 +2,23 @@
 
 See https://github.com/zio/zio-protoquill/releases
 
-# Kyo Quill 5.0.0 (Unreleased)
+# Kyo Quill 5.0.0
 
 - Completed migration from ZIO 2.x to Kyo 1.0-RC1 across all 8 modules (1,171 tests passing)
 - Rebranded project documentation from ZIO ProtoQuill to Kyo Quill
 - All JDBC, Cassandra, Caliban, and Doobie modules now use native Kyo effect types
+- Upgraded to Kyo `1.0.0-RC5` (from `1.0.0-RC2`)
+- Upgraded to Scala `3.8.4` (from `3.8.1`)
+- Upgraded `caliban-quick` to `3.1.2` (from `3.0.0`), aligning with the `caliban` coordinate that `kyo-caliban` `1.0.0-RC5` is tested against
+- `zio_3` resolves transitively to `2.1.26` via `kyo-zio` (not hand-pinned)
+- Internal rename: `kyo.IO` → `kyo.Sync` across all Kyo-based contexts (`quill-kyo`, `quill-jdbc-kyo`, `quill-cassandra-kyo`). `IO` was a deprecated alias for `Sync` in `1.0.0-RC2` (`summon[kyo.IO =:= kyo.Sync]` type-checks), so this is a spelling change only — `Result[T]`, `StreamResult[T]`, and `TranslateResult[T]` dealias identically before and after. **The public Scala API is unchanged.**
+
+#### Migration Notes:
+
+- **BREAKING: the minimum runtime JDK is now 25.** Kyo `1.0.0-RC5`'s foreign modules — including `kyo-data`, a direct dependency of `quill-kyo`, `quill-jdbc-kyo`, and `quill-cassandra-kyo` — are compiled with `-release 25`, because `java.lang.foreign` (Project Panama) became final in JDK 22 and can no longer be compiled against `-release 17`. This project builds every module uniformly at `-release:25`, so **all** published jars, including `quill-sql`, `quill-jdbc`, and `quill-doobie`, which never touch Kyo, are Java-25 class files (class-file major version 69). Consumers on JDK 17 or JDK 21 will get an `UnsupportedClassVersionError` at load time — no source-level change on the consumer's side resolves this, only a JDK runtime upgrade to 25 or later. **JDK 25 is the current Java LTS release** (GA September 2025, on the standard 2-year LTS cadence after JDK 21, supported to at least 2033), so this is a move onto the current LTS rather than onto a bleeding-edge or short-support release.
+- **BREAKING: the minimum Scala compiler version is now 3.8.4.** All five Kyo `1.0.0-RC5` artifacts this project depends on (`kyo-core`, `kyo-data`, `kyo-prelude`, `kyo-zio`, `kyo-caliban`) declare `scala3-library_3:3.8.4` in their published POMs. Scala 3 TASTy is forward-incompatible: a compiler older than 3.8.4 cannot read these jars' TASTy metadata.
+- If you depend on `io.getquill` and cannot yet move to JDK 25, stay on `4.8.8`, which remains published and untouched.
+- No other public API break is introduced by this release. The only breaking dimension is the runtime/compiler floor described above.
 
 # 4.6.0.1
 
