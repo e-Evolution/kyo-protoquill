@@ -39,19 +39,20 @@ to the Kyo-based contexts which leverage Kyo's `Async` and `Scope` effects.
 Add the following to your SBT file:
 
 ```scala
-val kyoVersion = "1.0-RC1"
+val kyoVersion = "1.0.0-RC5"
 
+// Requires Scala 3.8.4+ and JDK 25+. See Requirements below.
 libraryDependencies ++= Seq(
   // Synchronous JDBC Modules
-  "io.getquill" %% "quill-jdbc" % "4.8.5",
+  "io.getquill" %% "quill-jdbc" % "5.0.0",
   // Or Kyo Modules (with async/resource effects)
-  "io.getquill" %% "quill-jdbc-kyo" % "4.8.5",
+  "io.getquill" %% "quill-jdbc-kyo" % "5.0.0",
   // Or Cassandra
-  "io.getquill" %% "quill-cassandra" % "4.8.5",
+  "io.getquill" %% "quill-cassandra" % "5.0.0",
   // Or Cassandra + Kyo
-  "io.getquill" %% "quill-cassandra-kyo" % "4.8.5",
+  "io.getquill" %% "quill-cassandra-kyo" % "5.0.0",
   // Add for Caliban Integration (uses kyo-caliban internally)
-  "io.getquill" %% "quill-caliban" % "4.8.5"
+  "io.getquill" %% "quill-caliban" % "5.0.0"
 )
 ```
 
@@ -674,6 +675,8 @@ sbt "quill-caliban/test"
 
 # Requirements
 
-- Scala 3.8.1+
-- JDK 17+ (JDK 21 recommended)
-- Kyo 1.0-RC1
+- Scala 3.8.4+ — Kyo 1.0.0-RC5 publishes against `scala3-library_3:3.8.4`, and Scala 3 TASTy is forward-incompatible, so an older compiler cannot read its jars.
+- JDK 25+ — Kyo 1.0.0-RC5's foreign modules are compiled at `-release 25` (`java.lang.foreign` became final in JDK 22), so every jar this project publishes is Java 25 bytecode. On JDK 17 or 21 you get an `UnsupportedClassVersionError` at load time; only a JDK upgrade resolves it. JDK 25 is the current Java LTS.
+- Kyo 1.0.0-RC5
+
+If you cannot move to JDK 25 yet, stay on `4.8.8`, which remains published and targets JDK 17+.
