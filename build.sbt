@@ -13,7 +13,7 @@ inThisBuild(
     scmInfo := Some(
       ScmInfo(url("https://github.com/getkyo/kyo-protoquill"), "git:git@github.com:getkyo/kyo-protoquill.git")
     ),
-    version := "4.8.8",
+    version := "5.0.0",
     versionScheme := Some("always"),
   )
 )
