@@ -316,10 +316,10 @@ lazy val basicSettings = Seq(
     "-language:implicitConversions", "-explain",
     // See https://docs.scala-lang.org/scala3/guides/migration/tooling-syntax-rewriting.html
     "-no-indent",
-    "-release:17",
+    "-release:25",
     "-source:3.3", // Suppress `implicit` keyword deprecation warnings for gradual migration
   ),
-  javacOptions := Seq("-source", "17", "-target", "17"),
+  javacOptions := Seq("-source", "25", "-target", "25"),
   scalacOptions ++= (if (sys.props.getOrElse("profile", "false").toBoolean) Seq("-Vprofile") else Seq.empty),
 )
 
