@@ -15,7 +15,7 @@ import scala.annotation.targetName
  * Kyo equivalent of ZioJdbcContext.
  *
  * This is the DataSource-level effectful context. All operations return
- * QIO[T] = T < (Abort[SQLException] & Env[DataSource] & IO & Async),
+ * QIO[T] = T < (Abort[SQLException] & Env[DataSource] & Sync & Async),
  * meaning they require a DataSource to be provided via Env.
  *
  * It delegates to a KyoJdbcUnderlyingContext (Connection-level) via
@@ -111,10 +111,10 @@ abstract class KyoJdbcContext[+Dialect <: SqlIdiom, +Naming <: NamingStrategy] e
 
   def streamQuery[T](fetchSize: Option[Int], sql: String, prepare: Prepare = identityPrepare, extractor: Extractor[T] = identityExtractor)(info: ExecutionInfo, dc: Runner): QStream[T] = {
     // Execute query via onConnection (handles Connection lifecycle) and wrap in Stream
-    val chunkEffect: Chunk[Any] < (Abort[SQLException] & Env[DataSource] & kyo.IO & Async) =
+    val chunkEffect: Chunk[Any] < (Abort[SQLException] & Env[DataSource] & kyo.Sync & Async) =
       onConnection(connDelegate.executeQuery[T](sql, prepare, extractor)(info, dc))
         .map(list => Chunk.from(list).asInstanceOf[Chunk[Any]])
-    Stream.init[Any, Abort[SQLException] & Env[DataSource] & kyo.IO & Async](chunkEffect)
+    Stream.init[Any, Abort[SQLException] & Env[DataSource] & kyo.Sync & Async](chunkEffect)
       .asInstanceOf[QStream[T]]
   }
 
@@ -155,28 +155,28 @@ abstract class KyoJdbcContext[+Dialect <: SqlIdiom, +Naming <: NamingStrategy] e
    * - Otherwise, acquire a new connection from DataSource, set autoCommit=false,
    *   put in Local, commit on success, rollback on failure
    */
-  def transaction[A](op: A < (Abort[Throwable] & Env[DataSource] & IO & Async)): A < (Abort[Throwable] & Env[DataSource] & IO & Async) = {
+  def transaction[A](op: A < (Abort[Throwable] & Env[DataSource] & Sync & Async)): A < (Abort[Throwable] & Env[DataSource] & Sync & Async) = {
     currentConnection.get.flatMap {
       // Nested transaction: reuse existing connection
       case Some(_) => op
       case None =>
         for {
           ds <- Env.get[DataSource]
-          conn <- kyo.IO.defer(ds.getConnection)
-          prevAutoCommit <- kyo.IO.defer(conn.getAutoCommit)
-          _ <- kyo.IO.defer(conn.setAutoCommit(false))
+          conn <- kyo.Sync.defer(ds.getConnection)
+          prevAutoCommit <- kyo.Sync.defer(conn.getAutoCommit)
+          _ <- kyo.Sync.defer(conn.setAutoCommit(false))
           result <- currentConnection.let(Some(conn)) {
             Abort.run[Throwable](op)
           }
           _ <- result match {
             case kyo.Result.Success(_) =>
-              kyo.IO.defer {
+              kyo.Sync.defer {
                 conn.commit()
                 conn.setAutoCommit(prevAutoCommit)
                 conn.close()
               }
             case _ =>
-              kyo.IO.defer {
+              kyo.Sync.defer {
                 conn.rollback()
                 conn.setAutoCommit(prevAutoCommit)
                 conn.close()
@@ -194,7 +194,7 @@ abstract class KyoJdbcContext[+Dialect <: SqlIdiom, +Naming <: NamingStrategy] e
    * Otherwise, acquires a new connection from the DataSource,
    * executes the computation, and closes the connection.
    */
-  private[getquill] def onConnection[T](qcio: T < (Abort[SQLException] & Env[Connection] & IO & Async)): QIO[T] =
+  private[getquill] def onConnection[T](qcio: T < (Abort[SQLException] & Env[Connection] & Sync & Async)): QIO[T] =
     currentConnection.get.flatMap {
       case Some(conn) =>
         // Inside transaction: use the existing connection
@@ -203,17 +203,17 @@ abstract class KyoJdbcContext[+Dialect <: SqlIdiom, +Naming <: NamingStrategy] e
         // Outside transaction: acquire, use, release
         for {
           ds <- Env.get[DataSource]
-          conn <- Abort.catching[SQLException](kyo.IO.defer(ds.getConnection))
+          conn <- Abort.catching[SQLException](kyo.Sync.defer(ds.getConnection))
           result <- Abort.run[SQLException] {
             Env.run(conn)(qcio)
           }
-          _ <- kyo.IO.defer(conn.close())
+          _ <- kyo.Sync.defer(conn.close())
           value <- Abort.get(result)
         } yield value
     }
 
   // For translate context
-  override def wrap[T](t: => T): QIO[T] = Abort.catching[SQLException](kyo.IO.defer(t))
+  override def wrap[T](t: => T): QIO[T] = Abort.catching[SQLException](kyo.Sync.defer(t))
   override def push[A, B](result: QIO[A])(f: A => B): QIO[B] = result.map(f)
   override def seq[A](f: List[QIO[A]]): QIO[List[A]] =
     f.foldRight(wrap(List.empty[A])) { (elem, acc) =>

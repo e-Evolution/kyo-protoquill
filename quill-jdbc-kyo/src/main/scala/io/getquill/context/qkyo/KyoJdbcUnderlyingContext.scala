@@ -17,7 +17,7 @@ import scala.reflect.ClassTag
  * Kyo equivalent of ZioJdbcUnderlyingContext.
  *
  * This is the Connection-level effectful context. All operations return
- * QCIO[T] = T < (Abort[SQLException] & Env[Connection] & IO & Async),
+ * QCIO[T] = T < (Abort[SQLException] & Env[Connection] & Sync & Async),
  * meaning they require a Connection to be provided via Env.
  *
  * The connection is obtained from the environment (Env[Connection]) rather
@@ -107,24 +107,24 @@ abstract class KyoJdbcUnderlyingContext[+Dialect <: SqlIdiom, +Naming <: NamingS
   override protected def withConnectionWrapped[T](f: Connection => T): QCIO[T] =
     for {
       conn <- Env.get[Connection]
-      result <- Abort.catching[SQLException](kyo.IO.defer(f(conn)))
+      result <- Abort.catching[SQLException](kyo.Sync.defer(f(conn)))
     } yield result
 
   /** Transaction at Connection level: disable autoCommit, execute, commit/rollback */
-  def transaction[A](f: A < (Abort[Throwable] & Env[Connection] & IO & Async)): A < (Abort[Throwable] & Env[Connection] & IO & Async) = {
+  def transaction[A](f: A < (Abort[Throwable] & Env[Connection] & Sync & Async)): A < (Abort[Throwable] & Env[Connection] & Sync & Async) = {
     for {
       conn <- Env.get[Connection]
-      prevAutoCommit <- kyo.IO.defer(conn.getAutoCommit)
-      _ <- kyo.IO.defer(conn.setAutoCommit(false))
+      prevAutoCommit <- kyo.Sync.defer(conn.getAutoCommit)
+      _ <- kyo.Sync.defer(conn.setAutoCommit(false))
       result <- Abort.run[Throwable](f)
       _ <- result match {
         case kyo.Result.Success(_) =>
-          kyo.IO.defer {
+          kyo.Sync.defer {
             conn.commit()
             conn.setAutoCommit(prevAutoCommit)
           }
         case _ =>
-          kyo.IO.defer {
+          kyo.Sync.defer {
             conn.rollback()
             conn.setAutoCommit(prevAutoCommit)
           }
@@ -159,25 +159,25 @@ abstract class KyoJdbcUnderlyingContext[+Dialect <: SqlIdiom, +Naming <: NamingS
    * map, filter, fold, run, etc.
    */
   def streamQuery[T](fetchSize: Option[Int], sql: String, prepare: Prepare = identityPrepare, extractor: Extractor[T] = identityExtractor)(info: ExecutionInfo, dc: Runner): QCStream[T] = {
-    val chunkEffect: Chunk[Any] < (Abort[SQLException] & Env[Connection] & kyo.IO & Async) =
+    val chunkEffect: Chunk[Any] < (Abort[SQLException] & Env[Connection] & kyo.Sync & Async) =
       for {
         conn <- Env.get[Connection]
         ps <- Abort.catching[SQLException] {
-          kyo.IO.defer(prepareStatementForStreaming(sql, conn, fetchSize))
+          kyo.Sync.defer(prepareStatementForStreaming(sql, conn, fetchSize))
         }
         prepResult <- Abort.catching[SQLException] {
-          kyo.IO.defer {
+          kyo.Sync.defer {
             val (params, preparedPs) = prepare(ps, conn)
             logger.logQuery(sql, params)
             preparedPs
           }
         }
-        rs <- Abort.catching[SQLException](kyo.IO.defer(prepResult.executeQuery()))
+        rs <- Abort.catching[SQLException](kyo.Sync.defer(prepResult.executeQuery()))
       } yield {
         val iter = new ResultSetIterator(rs, conn, extractor)
         Chunk.from(iter.toIndexedSeq).asInstanceOf[Chunk[Any]]
       }
-    Stream.init[Any, Abort[SQLException] & Env[Connection] & kyo.IO & Async](chunkEffect)
+    Stream.init[Any, Abort[SQLException] & Env[Connection] & kyo.Sync & Async](chunkEffect)
       .asInstanceOf[QCStream[T]]
   }
 
@@ -187,7 +187,7 @@ abstract class KyoJdbcUnderlyingContext[+Dialect <: SqlIdiom, +Naming <: NamingS
     }
 
   // For JdbcContextVerbExecute
-  override def wrap[T](t: => T): QCIO[T] = Abort.catching[SQLException](kyo.IO.defer(t))
+  override def wrap[T](t: => T): QCIO[T] = Abort.catching[SQLException](kyo.Sync.defer(t))
   override def push[A, B](result: QCIO[A])(f: A => B): QCIO[B] = result.map(f)
   override def seq[A](f: List[QCIO[A]]): QCIO[List[A]] =
     f.foldRight(wrap(List.empty[A])) { (elem, acc) =>

@@ -13,7 +13,7 @@ trait KyoTranslateContext[+Dialect <: io.getquill.idiom.Idiom, +Naming <: Naming
   type Error
   type Environment
 
-  override type TranslateResult[T] = T < (Abort[Error] & Env[Environment] & IO & Async)
+  override type TranslateResult[T] = T < (Abort[Error] & Env[Environment] & Sync & Async)
 
   override def wrap[T](t: => T): TranslateResult[T] = t
 

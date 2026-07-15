@@ -5,7 +5,7 @@ import io.getquill.context.ExecutionInfo
 import io.getquill.context.cassandra.{CassandraRowContext, CqlIdiom}
 import io.getquill.util.Messages.fail
 import io.getquill.util.ContextLogger
-import kyo.{Chunk, Async, Env, IO, Scope, Sync, <, Abort}
+import kyo.{Chunk, Async, Env, Scope, Sync, <, Abort}
 import kyo.Stream
 
 import scala.jdk.CollectionConverters._

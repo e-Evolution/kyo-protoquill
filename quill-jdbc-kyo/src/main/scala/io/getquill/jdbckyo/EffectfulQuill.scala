@@ -26,7 +26,7 @@ import scala.annotation.targetName
  * Usage:
  * {{{
  *   val ctx = new EffectfulQuill.Postgres(Literal, myDataSource)
- *   val result: List[Person] < (Abort[SQLException] & IO & Async) = ctx.run(query[Person])
+ *   val result: List[Person] < (Abort[SQLException] & Sync & Async) = ctx.run(query[Person])
  * }}}
  */
 trait EffectfulQuill[+Dialect <: SqlIdiom, +Naming <: NamingStrategy]
@@ -39,7 +39,7 @@ trait EffectfulQuill[+Dialect <: SqlIdiom, +Naming <: NamingStrategy]
   def ds: DataSource
 
   // Environment = Any because DataSource is already provided (baked in)
-  // Result[T] resolves to T < (Abort[SQLException] & Env[Any] & IO & Async) via KyoContext
+  // Result[T] resolves to T < (Abort[SQLException] & Env[Any] & Sync & Async) via KyoContext
   // Env[Any] is trivially satisfiable and adds no practical overhead
   override type Error = SQLException
   override type Environment = Any
@@ -106,10 +106,10 @@ trait EffectfulQuill[+Dialect <: SqlIdiom, +Naming <: NamingStrategy]
 
   def streamQuery[T](fetchSize: Option[Int], sql: String, prepare: Prepare = identityPrepare, extractor: Extractor[T] = identityExtractor)(info: ExecutionInfo, dc: Runner): StreamResult[T] = {
     // Execute query via onDS (provides DataSource) and wrap result in Stream
-    val chunkEffect: Chunk[Any] < (Abort[SQLException] & Env[Any] & kyo.IO & Async) =
+    val chunkEffect: Chunk[Any] < (Abort[SQLException] & Env[Any] & kyo.Sync & Async) =
       onDS(dsDelegate.executeQuery[T](sql, prepare, extractor)(info, dc))
         .map(list => Chunk.from(list).asInstanceOf[Chunk[Any]])
-    Stream.init[Any, Abort[SQLException] & Env[Any] & kyo.IO & Async](chunkEffect)
+    Stream.init[Any, Abort[SQLException] & Env[Any] & kyo.Sync & Async](chunkEffect)
       .asInstanceOf[StreamResult[T]]
   }
 
@@ -133,10 +133,10 @@ trait EffectfulQuill[+Dialect <: SqlIdiom, +Naming <: NamingStrategy]
    * Execute instructions in a transaction.
    * Delegates to dsDelegate.transaction and provides the DataSource.
    */
-  def transaction[A](op: A < (Abort[Throwable] & IO & Async)): A < (Abort[Throwable] & IO & Async) =
+  def transaction[A](op: A < (Abort[Throwable] & Sync & Async)): A < (Abort[Throwable] & Sync & Async) =
     Env.run(ds: DataSource)(
       dsDelegate.transaction(
-        op.asInstanceOf[A < (Abort[Throwable] & Env[DataSource] & IO & Async)]
+        op.asInstanceOf[A < (Abort[Throwable] & Env[DataSource] & Sync & Async)]
       )
     )
 
@@ -145,7 +145,7 @@ trait EffectfulQuill[+Dialect <: SqlIdiom, +Naming <: NamingStrategy]
     Env.run(ds: DataSource)(qio)
 
   // For translate context
-  override def wrap[T](t: => T): Result[T] = Abort.catching[SQLException](kyo.IO.defer(t))
+  override def wrap[T](t: => T): Result[T] = Abort.catching[SQLException](kyo.Sync.defer(t))
   override def push[A, B](result: Result[A])(f: A => B): Result[B] = result.map(f)
   override def seq[A](f: List[Result[A]]): Result[List[A]] =
     f.foldRight(wrap(List.empty[A])) { (elem, acc) =>
@@ -214,28 +214,28 @@ object EffectfulQuill {
 
   /** Factory methods for creating DataSource instances */
   object DataSource {
-    def fromDataSource(ds: => DataSource): DataSource < IO =
-      kyo.IO.defer(ds)
+    def fromDataSource(ds: => DataSource): DataSource < Sync =
+      kyo.Sync.defer(ds)
 
-    def fromConfig(config: => Config): DataSource < (IO & Scope) =
+    def fromConfig(config: => Config): DataSource < (Sync & Scope) =
       fromJdbcConfigClosable(JdbcContextConfig(config))
 
-    def fromPrefix(prefix: String): DataSource < (IO & Scope) =
+    def fromPrefix(prefix: String): DataSource < (Sync & Scope) =
       fromJdbcConfigClosable(JdbcContextConfig(LoadConfig(prefix)))
 
-    def fromJdbcConfig(jdbcContextConfig: => JdbcContextConfig): DataSource < (IO & Scope) =
+    def fromJdbcConfig(jdbcContextConfig: => JdbcContextConfig): DataSource < (Sync & Scope) =
       fromJdbcConfigClosable(jdbcContextConfig)
 
-    def fromJdbcConfigClosable(jdbcContextConfig: => JdbcContextConfig): DataSource < (IO & Scope) =
+    def fromJdbcConfigClosable(jdbcContextConfig: => JdbcContextConfig): DataSource < (Sync & Scope) =
       for {
-        conf <- kyo.IO.defer(jdbcContextConfig)
-        ds <- KyoJdbc.scopedBestEffort(kyo.IO.defer(conf.dataSource))
+        conf <- kyo.Sync.defer(jdbcContextConfig)
+        ds <- KyoJdbc.scopedBestEffort(kyo.Sync.defer(conf.dataSource))
       } yield ds
   }
 
   /** Factory methods for acquiring scoped connections from a DataSource */
   object Connection {
-    def acquireScoped(ds: DataSource): Connection < (IO & Scope & Abort[SQLException]) =
-      KyoJdbc.scopedBestEffort(Abort.catching[SQLException](kyo.IO.defer(ds.getConnection)))
+    def acquireScoped(ds: DataSource): Connection < (Sync & Scope & Abort[SQLException]) =
+      KyoJdbc.scopedBestEffort(Abort.catching[SQLException](kyo.Sync.defer(ds.getConnection)))
   }
 }
