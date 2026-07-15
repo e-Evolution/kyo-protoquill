@@ -239,7 +239,7 @@ lazy val `quill-cassandra` =
     .settings(
       Test / fork := false,
       libraryDependencies ++= Seq(
-        "com.datastax.oss" % "java-driver-core" % "4.17.0"
+        "org.apache.cassandra" % "java-driver-core" % "4.19.3"
       )
     )
     .dependsOn(`quill-sql` % "compile->compile;test->test")
@@ -250,7 +250,7 @@ lazy val `quill-cassandra-kyo` =
     .settings(
       Test / fork := true,
       libraryDependencies ++= Seq(
-        "com.datastax.oss" % "java-driver-core" % "4.17.0",
+        "org.apache.cassandra" % "java-driver-core" % "4.19.3",
         "io.getkyo" %% "kyo-core" % kyoVersion,
         "io.getkyo" %% "kyo-prelude" % kyoVersion,
         "io.getkyo" %% "kyo-data" % kyoVersion
