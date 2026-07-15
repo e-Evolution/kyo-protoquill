@@ -87,7 +87,7 @@ val filteredModules = {
 }
 
 val zioQuillVersion = "4.8.5"
-val kyoVersion = "1.0.0-RC2"
+val kyoVersion = "1.0.0-RC5"
 val zioJsonVersion = "0.8.0"
 
 ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-collection-compat" % "always"
