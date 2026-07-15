@@ -114,10 +114,10 @@ The `KyoJdbc` object provides convenient type aliases for Kyo-based JDBC operati
 import io.getquill.context.KyoJdbc._
 
 // QIO[T] - Query IO with DataSource environment
-type QIO[T] = T < (Abort[SQLException] & Env[DataSource] & kyo.IO & Async)
+type QIO[T] = T < (Abort[SQLException] & Env[DataSource] & kyo.Sync & Async)
 
 // QCIO[T] - Query Connection IO with Connection environment
-type QCIO[T] = T < (Abort[SQLException] & Env[Connection] & kyo.IO & Async)
+type QCIO[T] = T < (Abort[SQLException] & Env[Connection] & kyo.Sync & Async)
 ```
 
 ### ZIO to Kyo Migration Reference

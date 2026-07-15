@@ -4,14 +4,12 @@ See https://github.com/zio/zio-protoquill/releases
 
 # Kyo Quill 5.0.0
 
-- Completed migration from ZIO 2.x to Kyo 1.0-RC1 across all 8 modules (1,171 tests passing)
-- Rebranded project documentation from ZIO ProtoQuill to Kyo Quill
-- All JDBC, Cassandra, Caliban, and Doobie modules now use native Kyo effect types
 - Upgraded to Kyo `1.0.0-RC5` (from `1.0.0-RC2`)
 - Upgraded to Scala `3.8.4` (from `3.8.1`)
 - Upgraded `caliban-quick` to `3.1.2` (from `3.0.0`), aligning with the `caliban` coordinate that `kyo-caliban` `1.0.0-RC5` is tested against
 - `zio_3` resolves transitively to `2.1.26` via `kyo-zio` (not hand-pinned)
 - Internal rename: `kyo.IO` → `kyo.Sync` across all Kyo-based contexts (`quill-kyo`, `quill-jdbc-kyo`, `quill-cassandra-kyo`). `IO` was a deprecated alias for `Sync` in `1.0.0-RC2` (`summon[kyo.IO =:= kyo.Sync]` type-checks), so this is a spelling change only — `Result[T]`, `StreamResult[T]`, and `TranslateResult[T]` dealias identically before and after. **The public Scala API is unchanged.**
+- Bumped `mssql-jdbc` to `12.10.0.jre11` (from `7.4.1.jre11`) and set `trustServerCertificate=true` on the SQL Server test datasource, since the 12.x line defaults to `encrypt=true` and the test container uses a self-signed certificate. Test-scope only; not inherited by consumers.
 - Moved the Cassandra driver dependency from `com.datastax.oss:java-driver-core:4.17.0` (its last release under that coordinate, 2019) to `org.apache.cassandra:java-driver-core:4.19.3`, reflecting the driver's donation from DataStax to the Apache Cassandra project. This is a compile-scope dependency of `quill-cassandra` (transitively `quill-cassandra-kyo`), so it is inherited by consumers. Package names are unaffected (`com.datastax.oss.driver.*` is retained by the donation), and no source change was required in this project.
 
 #### Migration Notes:
