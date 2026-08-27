@@ -4,7 +4,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 
 inThisBuild(
   List(
-    organization := "io.getquill",
+    organization := "com.e-evolution",
     homepage := Some(url("https://getkyo.io/kyo-quill")),
     licenses := List(("Apache License 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
     developers := List(
