@@ -13,7 +13,7 @@ inThisBuild(
     scmInfo := Some(
       ScmInfo(url("https://github.com/getkyo/kyo-protoquill"), "git:git@github.com:getkyo/kyo-protoquill.git")
     ),
-    version := "5.0.0",
+    version := "5.0.0-kyo-RC6",
     versionScheme := Some("always"),
   )
 )
@@ -87,7 +87,7 @@ val filteredModules = {
 }
 
 val zioQuillVersion = "4.8.5"
-val kyoVersion = "1.0.0-RC5"
+val kyoVersion = "1.0.0-RC6"
 val zioJsonVersion = "0.8.0"
 
 ThisBuild / libraryDependencySchemes += "org.scala-lang.modules" %% "scala-collection-compat" % "always"
