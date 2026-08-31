@@ -1,0 +1,126 @@
+# Release Manifest Record
+# Change: prepare-kyo-quill-publication | Work unit: WU6
+# Candidate: 4d286f7d (tree 8924989ad8d3d676aff73c30ab93ad31878e7385)
+#   full sha 4d286f7d9172f452fd3d0ae2458ef73c11376fea
+# Schema: docs/publication-readiness/evidence.md (Release Manifest Record
+#   Schema, added by this unit) and this comment block.
+#
+# Flat mapping of dotted keys to scalar values (valid YAML; same convention
+# as destination-decision.yaml). Every field whose resolution needs
+# publication, tagging, Maven Central, signing, or GitHub Release authority
+# is recorded as "proposed" (a suggested disposition awaiting approval) or
+# "unresolved" (no disposition proposed); state never reads "resolved" in
+# this record. The selected source fork e-Evolution/kyo-protoquill grants
+# none of that authority. This record does not edit build.sbt, tags,
+# coordinates, README.md, or CHANGELOG.md.
+schema_version: "1"
+candidate_id: "4d286f7d"
+candidate_tree: "8924989ad8d3d676aff73c30ab93ad31878e7385"
+captured_at: "2026-08-27"
+manifest_status: "unresolved"
+s10.evidence_ids: "ER-028, ER-029, ER-031, ER-065, ER-066"
+s10.version_control.state: "unresolved"
+s10.version_control.authorized: "not-authorized"
+
+fields.version.observed: "5.0.0-kyo-RC6 (build.sbt:16); versionScheme=always (build.sbt:17)"
+fields.version.proposed: "unresolved by this record; no version is selected. See semver_precedence.* for the precedence conflict and candidate dispositions."
+fields.version.state: "unresolved"
+fields.version.severity: "blocking"
+fields.version.owner: "unassigned"
+fields.version.applicable_surfaces: "build_sbt,readme,changelog,local_tags,remote_queries,generated_poms"
+fields.version.disposition: "Do not select a version; the SemVer precedence conflict (semver_precedence.*) is the blocking condition. build.sbt was not edited."
+
+fields.kyo_version.observed: "1.0.0-RC6 (build.sbt:90)"
+fields.kyo_version.proposed: "no change proposed to the build value; correcting README.md's kyoVersion to 1.0.0-RC6 requires WU9's approved documentation edit authority."
+fields.kyo_version.state: "proposed"
+fields.kyo_version.severity: "advisory"
+fields.kyo_version.owner: "unassigned"
+fields.kyo_version.applicable_surfaces: "build_sbt,readme,changelog"
+fields.kyo_version.disposition: "README.md declares 1.0.0-RC5 (line 42), already recorded as ER-022. Remediation is WU9's, not performed here."
+
+fields.scala_version.observed: "3.8.4 (build.sbt:305); -release:25 (build.sbt:319); javacOptions -source 25 -target 25 (build.sbt:322)"
+fields.scala_version.proposed: "no authority-gated action proposed; the value already reflects the maintainer's committed WU1 decision."
+fields.scala_version.state: "observed"
+fields.scala_version.severity: "advisory"
+fields.scala_version.owner: "unassigned"
+fields.scala_version.applicable_surfaces: "build_sbt"
+fields.scala_version.disposition: "Current and internally consistent; no cross-surface evidence gathered by this unit contradicts it."
+
+fields.java_version.observed: "-release:25 (build.sbt:319); javacOptions -source 25 -target 25 (build.sbt:322)"
+fields.java_version.proposed: "no authority-gated action proposed; the value already reflects the maintainer's committed WU1 decision."
+fields.java_version.state: "observed"
+fields.java_version.severity: "advisory"
+fields.java_version.owner: "unassigned"
+fields.java_version.applicable_surfaces: "build_sbt"
+fields.java_version.disposition: "Current; no cross-surface evidence gathered by this unit contradicts it."
+
+fields.tag.observed: "HEAD is untagged; local tag v5.0.0 points at acc60185, no longer an ancestor of master; git ls-remote --tags origin returns empty (origin has no tags at all)."
+fields.tag.proposed: "unresolved by this record; tagging requires both a resolved version (fields.version) and release/GitHub authority, and destination-decision.yaml's authorization.github_release currently reads not-selected/not-authorized."
+fields.tag.state: "unresolved"
+fields.tag.severity: "blocking"
+fields.tag.owner: "unassigned"
+fields.tag.applicable_surfaces: "local_tags,remote_queries,changelog"
+fields.tag.disposition: "No tag proposed; recorded strictly as a release-identity fact per this unit's task text. No tag was created or moved."
+
+fields.coordinates.observed: "groupId com.e-evolution (build.sbt:7, changed from io.getquill in commit 4d286f7d); artifactIds unchanged across all 8 published modules (see fields.modules)."
+fields.coordinates.proposed: "no groupId change is proposed here (already committed by maintainer decision at candidate 4d286f7d); Maven Central authority to publish under com.e-evolution remains unresolved."
+fields.coordinates.state: "unresolved"
+fields.coordinates.severity: "blocking"
+fields.coordinates.owner: "unassigned"
+fields.coordinates.applicable_surfaces: "build_sbt,remote_queries,generated_poms"
+fields.coordinates.disposition: "com.e-evolution has zero published artifacts on Maven Central; e-evolution.com resolves (HTTP 200) as attributable reverse-DNS but that alone does not grant Sonatype namespace authority. Not resolved here; routed to WU11."
+
+fields.modules.observed: "9 modules across build.sbt's four module sets (modules.md#module-inventory, ER-010); 8 are source-bearing and publishable, the root aggregate project has publishArtifact set to false."
+fields.modules.proposed: "no module addition or removal is proposed; the module set is already inventoried by WU3 and unchanged at this candidate."
+fields.modules.state: "observed"
+fields.modules.severity: "advisory"
+fields.modules.owner: "unassigned"
+fields.modules.applicable_surfaces: "build_sbt,generated_poms"
+fields.modules.disposition: "Cross-referenced to modules.md#module-inventory (ER-010). Orphaned local ivy POMs exist for all 8 published modules under the old io.getquill coordinate (ER-023); none exist yet under com.e-evolution, and that local install is WU7's work, not performed here."
+
+fields.readme_coordinates.observed: "README.md lines 47, 49, 51, 53, 55 advertise io.getquill %% quill-* % 5.0.0; line 42 declares kyoVersion=1.0.0-RC5."
+fields.readme_coordinates.proposed: "unresolved by this record; correcting README.md requires WU9's approved documentation edit authority, and is sequenced after fields.version and fields.coordinates are themselves resolved."
+fields.readme_coordinates.state: "unresolved"
+fields.readme_coordinates.severity: "blocking"
+fields.readme_coordinates.owner: "unassigned"
+fields.readme_coordinates.applicable_surfaces: "readme,build_sbt"
+fields.readme_coordinates.disposition: "Mismatched against build.sbt on groupId (io.getquill vs com.e-evolution), version (5.0.0 vs 5.0.0-kyo-RC6), and Kyo version (RC5 vs RC6); already recorded as ER-022. README.md was not edited by this unit."
+
+fields.changelog.observed: "CHANGELOG.md's newest entry is titled Kyo Quill 5.0.0 and describes RC5 content (Kyo 1.0.0-RC5, the kyo.IO to kyo.Sync rename, the mssql-jdbc bump); no entry exists for RC6 or for the groupId change. CHANGELOG.md line 1 routes release notes to a GitHub Releases page for a repository that does not exist."
+fields.changelog.proposed: "unresolved by this record; a new CHANGELOG.md entry for RC6 and the groupId change, plus a corrected release-notes link, requires WU9's approved documentation edit authority."
+fields.changelog.state: "unresolved"
+fields.changelog.severity: "blocking"
+fields.changelog.owner: "unassigned"
+fields.changelog.applicable_surfaces: "build_sbt,remote_queries"
+fields.changelog.disposition: "The linked releases page targets the same nonexistent repository as fields.scm; see fields.scm.disposition for the verification method. CHANGELOG.md was not edited by this unit."
+
+fields.homepage.observed: "build.sbt:8 homepage is https://getkyo.io/kyo-quill; HTTP GET/HEAD to that URL returns 404."
+fields.homepage.proposed: "unresolved by this record; no replacement homepage URL is proposed."
+fields.homepage.state: "unresolved"
+fields.homepage.severity: "blocking"
+fields.homepage.owner: "unassigned"
+fields.homepage.applicable_surfaces: "build_sbt,remote_queries"
+fields.homepage.disposition: "Dead public link. build.sbt was not edited. Routed for maintainer disposition alongside fields.scm."
+
+fields.scm.observed: "build.sbt:14 scmInfo is https://github.com/getkyo/kyo-protoquill; an unauthenticated curl to the GitHub API returns 403 (rate limiting, not a result); the authenticated gh api repos/getkyo/kyo-protoquill call returns 404 (repository does not exist)."
+fields.scm.proposed: "unresolved by this record; no replacement SCM URL is proposed. README.md line 3 separately links to https://github.com/getkyo/kyo, which resolves correctly and is not part of this finding."
+fields.scm.state: "unresolved"
+fields.scm.severity: "blocking"
+fields.scm.owner: "unassigned"
+fields.scm.applicable_surfaces: "build_sbt,remote_queries"
+fields.scm.disposition: "Dead public link, confirmed only via the authenticated query; the unauthenticated 403 must never be mistaken for the 404 result. build.sbt was not edited."
+
+fields.license.observed: "build.sbt:9 licenses is Apache License 2.0; LICENSE.txt carries the Apache-2.0 text with a copyright notice for Flavio Brasil, the upstream Quill author; build.sbt:11 developers lists only deusaquilus (Alexander Ioffe), not the fork maintainer."
+fields.license.proposed: "unresolved by this record; copyright, notice, and attribution for a publishing fork require a named owner. Already blocked at ER-009 in provenance.md and not reopened here."
+fields.license.state: "unresolved"
+fields.license.severity: "blocking"
+fields.license.owner: "unassigned"
+fields.license.applicable_surfaces: "build_sbt,archive_contents"
+fields.license.disposition: "The Apache-2.0 license declaration itself is current and internally consistent; the blocking gap is attribution ownership, cross-referenced to ER-009, not the license choice. LICENSE.txt was not edited by this unit."
+
+semver_precedence.finding: "5.0.0-kyo-RC6 is a SemVer 2.0.0 pre-release identifier and therefore sorts BELOW the already-published plain 5.0.0 under SemVer 2.0.0 section 11, despite containing strictly newer code. versionScheme=always (build.sbt:17) does not change SemVer precedence."
+semver_precedence.severity: "blocking"
+semver_precedence.state: "unresolved"
+semver_precedence.owner: "unassigned"
+semver_precedence.proposed_dispositions: "(1) bump to a new plain release, for example 5.1.0 or 6.0.0, once coordinates and publication authority are settled; (2) publish a corrected 5.0.x or later release explicitly superseding 5.0.0 under the same precedence rules; (3) retain 5.0.0-kyo-RC6 only as a pre-release/RC channel identifier and never claim precedence over the plain 5.0.0. No disposition is selected by this record."
+semver_precedence.source: "openspec/changes/prepare-kyo-quill-publication/tasks.md WU6 (carried from the 2026-08-27 Judgment Day review); build.sbt lines 16-17"

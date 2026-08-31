@@ -1,6 +1,25 @@
-> **Historical Note:** Pre-v5.0.0 changelog entries below document the ZIO ProtoQuill era. Kyo Quill release notes are now provided in the [GitHub Releases of this project](https://github.com/getkyo/kyo-protoquill/releases).
+> **Historical Note:** Pre-v5.0.0 changelog entries below document the ZIO
+> ProtoQuill era, when this project lived at `zio/zio-protoquill`; see
+> https://github.com/zio/zio-protoquill/releases for that project's own
+> release history. This fork's repository is `e-Evolution/kyo-protoquill`;
+> no GitHub Release has been published for it, and no release date, tag,
+> or artifact is promised by this file. This `CHANGELOG.md` is the current
+> record of Kyo Quill changes for this fork.
 
-See https://github.com/zio/zio-protoquill/releases
+# Unreleased — `com.e-evolution` groupId, Kyo `1.0.0-RC6` (local build only)
+
+- Upgraded to Kyo `1.0.0-RC6` (from `1.0.0-RC5`).
+- Changed the publication groupId from `io.getquill` to `com.e-evolution`.
+  The Scala package namespace is unchanged: every `import` still refers to
+  `io.getquill._`. See the README's package-namespace note and
+  `docs/publication-readiness/verification.md` for the consumer-fixture
+  evidence backing this split.
+- **Not released.** This entry describes the state of a local build only;
+  it is not tagged, not published to Maven Central, and has no associated
+  GitHub Release. `docs/publication-readiness/release-manifest.yaml`
+  records an unresolved SemVer-precedence conflict between this version
+  string and the previously published plain `5.0.0`; no version has been
+  selected for an eventual release.
 
 # Kyo Quill 5.0.0
 

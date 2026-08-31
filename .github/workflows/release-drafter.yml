@@ -4,6 +4,11 @@ on:
   push:
     branches: ['master']
 
+# Least-privilege default: release-drafter only needs write access to draft
+# GitHub Releases; it never reads or writes any other repository scope.
+permissions:
+  contents: write
+
 jobs:
   update_release_draft:
     runs-on: ubuntu-20.04

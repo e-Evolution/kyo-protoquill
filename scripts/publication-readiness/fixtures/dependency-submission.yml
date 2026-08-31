@@ -1,0 +1,10 @@
+name: dependency submission
+on:
+  push:
+    branches: [master]
+permissions:
+  contents: write
+jobs:
+  submit:
+    steps:
+      - uses: scalacenter/sbt-dependency-submission@v3

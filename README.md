@@ -1,6 +1,6 @@
 # Introduction
 
-Kyo Quill is the [Kyo](https://github.com/getkyo/kyo)-native Scala 3 compile-time Language Integrated Queries library. Originally based on [ProtoQuill](https://github.com/zio/zio-protoquill), the project has fully migrated to **Kyo's algebraic effect system** for async/resource handling while preserving all Quill functionality.
+Kyo Quill is the [Kyo](https://github.com/getkyo/kyo)-native Scala 3 compile-time Language Integrated Queries library. Originally based on [ProtoQuill](https://github.com/zio/zio-protoquill), the project has migrated to **Kyo's algebraic effect system** for async/resource handling. The migrated surface is validated against the measured test matrix in [Verification Status](#verification-status) below, which documents the confirmed scope rather than a blanket claim of parity with every historical Quill feature.
 
 For those migrating from ZIO Quill, the core Quill DSL (`quote`, `query`, `run`, `inline def`, etc.) remains identical. Only the effect layer changes: `ZIO[R, E, A]` becomes `A < (Abort[E] & Env[R] & Async)` and `ZLayer` becomes direct dependency passing or Kyo `Layer`.
 
@@ -39,22 +39,34 @@ to the Kyo-based contexts which leverage Kyo's `Async` and `Scope` effects.
 Add the following to your SBT file:
 
 ```scala
-val kyoVersion = "1.0.0-RC5"
+val kyoVersion = "1.0.0-RC6"
 
 // Requires Scala 3.8.4+ and JDK 25+. See Requirements below.
+//
+// This fork publishes under the `com.e-evolution` groupId (changed from
+// `io.getquill`). Maven Central publication is not authorized, so these
+// coordinates currently resolve only from a local build of this
+// repository (`sbt publishLocal`), never from a public repository.
 libraryDependencies ++= Seq(
   // Synchronous JDBC Modules
-  "io.getquill" %% "quill-jdbc" % "5.0.0",
+  "com.e-evolution" %% "quill-jdbc" % "5.0.0-kyo-RC6",
   // Or Kyo Modules (with async/resource effects)
-  "io.getquill" %% "quill-jdbc-kyo" % "5.0.0",
+  "com.e-evolution" %% "quill-jdbc-kyo" % "5.0.0-kyo-RC6",
   // Or Cassandra
-  "io.getquill" %% "quill-cassandra" % "5.0.0",
+  "com.e-evolution" %% "quill-cassandra" % "5.0.0-kyo-RC6",
   // Or Cassandra + Kyo
-  "io.getquill" %% "quill-cassandra-kyo" % "5.0.0",
+  "com.e-evolution" %% "quill-cassandra-kyo" % "5.0.0-kyo-RC6",
   // Add for Caliban Integration (uses kyo-caliban internally)
-  "io.getquill" %% "quill-caliban" % "5.0.0"
+  "com.e-evolution" %% "quill-caliban" % "5.0.0-kyo-RC6"
 )
 ```
+
+**Package namespace note:** although the dependency coordinate above uses
+`com.e-evolution` as the groupId, the Scala package namespace this project
+publishes is unchanged and remains `io.getquill`; every `import` statement
+below, including `import io.getquill._`, is correct as written. This split
+was verified against two independent isolated consumer fixtures — see
+`docs/publication-readiness/verification.md`.
 
 Assuming we are using Postgres, add the following `application.conf`:
 
@@ -450,6 +462,10 @@ The Parser API allows you to define custom parsing for user-defined logic:
   - Replace `.provideLayer(layer)` with direct DataSource passing to context constructor
   - ZIO `FiberRef` becomes Kyo `Local[T]`
 
+**Deferred JSON codec migration:** the `zio-json` to Kyo Schema/JSON codec
+migration remains deferred. This repository does not represent it as complete or
+as a publication-readiness condition.
+
 # Extensions
 
 Kyo Quill supports standard Dotty extensions. An inline extension will yield a compile-time query.
@@ -673,10 +689,30 @@ sbt "quill-doobie/test"
 sbt "quill-caliban/test"
 ```
 
+# Verification Status
+
+The following results are measured locally against this fork's candidate
+commit; no clean-checkout CI run backs these numbers, and they are not a
+guarantee of behavior on other environments or on a different candidate.
+
+| Test tier | Run / Passed / Failed / Ignored | Notes |
+| --- | --- | --- |
+| `sqltest` (`quill-sql-tests`) | 668 / 668 / 0 / 1 | No known failures. |
+| `db` (`quill-jdbc`, `quill-caliban`, `quill-jdbc-kyo`) | 535 / 534 / 1 / 13 | Single failure is the pre-existing `io.getquill.context.jdbc.oracle.DistinctJdbcSpec` "Ex 8 Distinct With Sort", unrelated to the Kyo migration. |
+| `bigdata` (Cassandra, OrientDB) | 190 / 190 / 0 / 0 | No known failures. |
+
+Measured with sbt 1.12.4 on the Homebrew OpenJDK 25.0.4 build that
+`.sbtopts` pins (not Eclipse Temurin, which is only this build machine's
+unrelated system `java`). Full structured evidence, including environment
+details and per-tier commands, is in
+`docs/publication-readiness/verification.md`.
+
 # Requirements
 
-- Scala 3.8.4+ — Kyo 1.0.0-RC5 publishes against `scala3-library_3:3.8.4`, and Scala 3 TASTy is forward-incompatible, so an older compiler cannot read its jars.
-- JDK 25+ — Kyo 1.0.0-RC5's foreign modules are compiled at `-release 25` (`java.lang.foreign` became final in JDK 22), so every jar this project publishes is Java 25 bytecode. On JDK 17 or 21 you get an `UnsupportedClassVersionError` at load time; only a JDK upgrade resolves it. JDK 25 is the current Java LTS.
-- Kyo 1.0.0-RC5
+- Scala 3.8.4+ — Kyo 1.0.0-RC6 publishes against `scala3-library_3:3.8.4`, and Scala 3 TASTy is forward-incompatible, so an older compiler cannot read its jars.
+- JDK 25+ — Kyo 1.0.0-RC6's foreign modules are compiled at `-release 25` (`java.lang.foreign` became final in JDK 22), so every jar this project publishes is Java 25 bytecode. On JDK 17 or 21 you get an `UnsupportedClassVersionError` at load time; only a JDK upgrade resolves it. JDK 25 is the current Java LTS.
+- Kyo 1.0.0-RC6
 
-If you cannot move to JDK 25 yet, stay on `4.8.8`, which remains published and targets JDK 17+.
+If you cannot move to JDK 25 yet, the unrelated upstream `io.getquill`
+project (not this fork) currently publishes up to `4.8.6` for JDK 17+; this
+fork does not publish under that coordinate or that version line.

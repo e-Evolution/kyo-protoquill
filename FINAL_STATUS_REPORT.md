@@ -1,5 +1,15 @@
-> **Historical Document** — The ZIO→Kyo migration was completed March 2026.
-> These files are retained for reference but are no longer active planning documents.
+> **Historical Document — Superseded.** This document describes the initial
+> ZIO→Kyo migration completed in March 2026, when this project targeted Kyo
+> `1.0-RC1`, Scala `3.8.1`, and JDK `17+`. The project has since moved to
+> Kyo `1.0.0-RC6`, Scala `3.8.4`, and JDK `25+`; every figure below is
+> superseded and must not be treated as the project's current state. This
+> document is also the origin of an inaccurate **"1,171 tests passing"**
+> figure below: the real measured baselines at the current candidate are
+> `sqltest` 668/668 passed, `db` 535/534 passed (one pre-existing,
+> unrelated failure), and `bigdata` 190/190 passed. For current, measured
+> evidence see `docs/publication-readiness/verification.md` and
+> `docs/publication-readiness/modules.md`. This file is retained for
+> historical reference only and is not an active planning document.
 
 # Final Status Report - Migration to Kyo 1.0-RC1
 

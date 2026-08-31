@@ -8,6 +8,12 @@ on:
   release:
     types: [ published ] # Triggers the CI when a new GitHub Release is published
 
+# Least-privilege default: both jobs only need to read repository content.
+# The `release` job's actual publication credentials are the separate
+# SONATYPE_*/PGP_* secrets below, never the GITHUB_TOKEN this block scopes.
+permissions:
+  contents: read
+
 env:
   # See:
   #  - https://stackoverflow.com/a/73708006
@@ -44,7 +50,11 @@ jobs:
           ./build/build.sh ${{ matrix.module }}
 
   release:
-    if: ${{github.event_name != 'pull_request'}}
+    # Only a published GitHub Release may reach this job. Both the trigger
+    # and job condition require that event so ordinary pushes, pull
+    # requests, and other release actions cannot reach `sbt ci-release`.
+    if: ${{ github.event_name == 'release' && github.event.action == 'published' }}
+
     runs-on: ubuntu-latest
     needs: build
     steps:

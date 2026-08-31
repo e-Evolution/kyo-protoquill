@@ -1,0 +1,9 @@
+name: unauthorized release
+on:
+  release:
+    types: [published]
+jobs:
+  publish:
+    if: ${{ github.event.action == 'published' }}
+    steps:
+      - run: sbt ci-release

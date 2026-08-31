@@ -1,0 +1,9 @@
+name: unsafe ordinary push
+on:
+  push:
+    branches: [master]
+jobs:
+  publish:
+    if: ${{ github.event_name == 'push' }}
+    steps:
+      - run: sbt ci-release

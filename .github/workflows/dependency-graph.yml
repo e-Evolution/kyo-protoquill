@@ -18,5 +18,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.2.2
+          # This build requires `-release:25`, so dependency resolution uses
+          # the same Temurin 25 setup as `ci.yml`'s build job rather than the
+          # runner default. This is build setup for dependency submission, not
+          # artifact publication or a claim about workflow provenance.
+
+      - name: Setup Java and Scala
+        uses: actions/setup-java@v4.7.1
+        with:
+          distribution: temurin
+          java-version: '25'
+          check-latest: true
       - uses: sbt/setup-sbt@v1
       - uses: scalacenter/sbt-dependency-submission@v3

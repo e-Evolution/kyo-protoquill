@@ -1,0 +1,9 @@
+name: authorized release
+on:
+  release:
+    types: [published]
+jobs:
+  publish:
+    if: ${{ github.event_name == 'release' }}
+    steps:
+      - run: sbt ci-release

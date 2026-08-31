@@ -1,0 +1,63 @@
+# Destination Decision Record
+# Change: prepare-kyo-quill-publication | Work unit: WU11 (updates the WU2 baseline)
+# Candidate: 4d286f7d (tree 8924989ad8d3d676aff73c30ab93ad31878e7385) — rebound 2026-08-27 from superseded b45c3ea2; see verification.md Candidate Rebinding Record
+# Schema: docs/publication-readiness/evidence.md#destination-decision-record-schema
+#
+# Flat mapping of dotted keys to scalar values (valid YAML). Grants no
+# publication, push, tag, GitHub Release, artifact-upload, or
+# repository-settings authority. No owner, approver, date, condition, or
+# authority field is inferred from repository access, remotes, or config;
+# every unconfirmed field stays explicitly "pending" or "unassigned". Per
+# spec.md's "Destination Decision Is Explicit and Blocking" requirement, an
+# approval requires affirmative, attributable acceptance by the decision
+# owner and every applicable owner/approver — a proposed destination alone
+# never implies consent. Prior evidence is never erased when an approval is
+# withdrawn or a field is re-recorded; only WU11's evidence.md rows are
+# added here, and every WU2 approved_facts group stays untouched below.
+schema_version: "1"
+candidate_id: "4d286f7d"
+candidate_tree: "8924989ad8d3d676aff73c30ab93ad31878e7385"
+captured_at: "2026-08-27"
+s04.candidate_ref: "4d286f7d9172f452fd3d0ae2458ef73c11376fea"
+s04.tree_ref: "8924989ad8d3d676aff73c30ab93ad31878e7385"
+s04.environment_ref: "Homebrew OpenJDK 25.0.4 actual sbt JVM; no Temurin normal-clone run"
+s04.freshness: "stale"
+s04.invalidation_reason: "jdk-vendor-version-mismatch, sbt-jvm-mismatch, clone-kind-mismatch, manifest-mismatch, checker-input-mismatch"
+s04.superseding_id: "S06-Temurin-normal-clone-2026-08-30"
+decision_status: "pending"
+approved_facts.source_repository.value: "e-Evolution/kyo-protoquill"
+approved_facts.source_repository.classification: "verified-fact"
+approved_facts.source_repository.source: "openspec/changes/prepare-kyo-quill-publication/proposal.md#21-repository-provenance-relative-to-zio-quill"
+approved_facts.source_repository.captured_at: "2026-08-27"
+approved_facts.source_repository_parent.value: "zio/zio-protoquill"
+approved_facts.source_repository_parent.classification: "verified-fact"
+approved_facts.source_repository_parent.source: "openspec/changes/prepare-kyo-quill-publication/proposal.md#21-repository-provenance-relative-to-zio-quill"
+approved_facts.source_repository_parent.captured_at: "2026-08-27"
+selected_destination.status: "proposed"
+selected_destination.upstream_contribution.state: "not-selected"
+selected_destination.upstream_contribution.authorized: "not-authorized"
+selected_destination.source_publication.state: "selected"
+selected_destination.source_publication.authorized: "not-authorized"
+selected_destination.maven_release.state: "not-selected"
+selected_destination.maven_release.authorized: "not-authorized"
+selected_destination.github_release.state: "not-selected"
+selected_destination.github_release.authorized: "not-authorized"
+owners.decision_owner: "unassigned"
+owners.repository_owner: "unassigned"
+owners.artifact_namespace_owner: "unassigned"
+owners.release_approver: "unassigned"
+owners.governance_approver: "unassigned"
+owners.security_contact_owner: "unassigned"
+owners.credential_owner: "unassigned"
+dates.decision_date: "pending"
+dates.approval_date: "pending"
+signoff.status: "pending"
+signoff.effective_date: "pending"
+signoff.authority_ref: "unassigned"
+evidence_links: "ER-054, ER-059, ER-065, ER-066; openspec/changes/prepare-kyo-quill-publication/proposal.md#3-publication-destination-decision-gate, docs/publication-readiness/evidence.md#er-005-destination-decision-record-created, docs/publication-readiness/provenance.md#fork-relationship-and-lineage, docs/publication-readiness/governance/release-controls.md#issue-ownership, docs/publication-readiness/evidence.md#er-059-wu11-authority-matrix-recorded"
+scope: "Covers only the source-publication proposal at the public GitHub fork e-Evolution/kyo-protoquill (GitHub parent/source zio/zio-protoquill, verified 2026-08-27 via authenticated gh api; unauthenticated queries return 403 rate-limiting, not a genuine 404). Excludes upstream contribution to zio/zio-protoquill, Maven Central release, and GitHub Release; each keeps its own selected_destination/authorization entry above and requires its own named owner/approver before any future amendment."
+conditions: "Approval requires an affirmative, attributable decision_owner and every applicable owner/approver (repository_owner; artifact_namespace_owner or an approved not-applicable rationale; release_approver; governance_approver; security_contact_owner; credential_owner or an approved not-applicable rationale), non-pending decision_date and approval_date, and selected_destination.status resolved beyond proposed, per spec.md's Destination Decision Is Explicit and Blocking requirement. No owner, approver, date, or authorization is inferred from repository access, domain ownership, or configuration; this machine has no sbt/Sonatype/PGP/GPG credentials or signing tool, so credential_owner and artifact_namespace_owner stay unassigned. Any future Maven Central or GitHub Release proposal requires a separate SDD change and separate authorization; this record authorizes neither, and authorizes no push, tag, or repository-settings change for source_publication either."
+authorization.maven_central.state: "not-selected"
+authorization.maven_central.authorized: "not-authorized"
+authorization.github_release.state: "not-selected"
+authorization.github_release.authorized: "not-authorized"

@@ -10,8 +10,12 @@ This template isn't a strict requirement to open issues, but please try to provi
 
 ### Steps to reproduce the behavior
 
-If the issue can be reproduced using a [mirror context](http://getquill.io/#contexts-mirror-context), please provide a scastie snippet that reproduces it. See https://scastie.scala-lang.org/fwbrasil/Z2CeR2qHQJK6EyQWUBhANA as an example. Remember to select the correct Quill version in the left menu.
+If the issue can be reproduced using a mirror context, please provide a minimal, self-contained code snippet that reproduces it (for example on [Scastie](https://scastie.scala-lang.org/)). Remember to select a Scala 3 target and the Kyo Quill version you are using.
 
 ### Workaround
 
-@getquill/maintainers
+This fork currently has no confirmed, named issue-triage owner or approver;
+see `docs/publication-readiness/governance/release-controls.md` for the
+current governance status. Do not tag `@getquill/maintainers` — that team
+belongs to the unrelated upstream Quill project and will not see issues
+filed against this fork.
