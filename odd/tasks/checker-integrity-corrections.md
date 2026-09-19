@@ -64,8 +64,8 @@ Fail-open evidence parsing can allow structurally plausible but invalid readines
   - Commit as one work unit with tests and this document.
   - Evidence: strict TDD captured semantic and duplicate-section REDs before their corrections. Writer and independent checks passed 2 focused tests, 54 full tests, 38/38 validations, structural checks, exact scope review, and byte-identical historical Evidence Index comparison. The required parent spot check reran the full harness with the same passing totals. Native assessment remained `unassessable`, so the independent verifier was the risk-directed check. Work-unit commit: `499a54cc1c42398c17c9553e56e32057d7ab2f9f` (`fix: validate declared S09 slice records`), authored product/docs delta `+166/-1=167`.
 
-- [ ] **ODD-CHK-02 — Reject duplicate flattened-YAML keys**
-  - Status: in progress.
+- [x] **ODD-CHK-02 — Reject duplicate flattened-YAML keys**
+  - Status: completed.
   - Route: delegated direct writer.
   - Trigger: strict-TDD implementation and in-file test-boundary work benefit from the same bounded writer pattern.
   - Add a valid class-level focused test for duplicate-key rejection.
@@ -73,14 +73,16 @@ Fail-open evidence parsing can allow structurally plausible but invalid readines
   - Reject duplicates deterministically with a useful error; do not silently overwrite.
   - Reach GREEN, run the full self-test suite, then refactor without behavior drift.
   - Commit as one work unit with tests and this document.
-  - Evidence pending: focused RED/GREEN, full self-test, runtime harness classification, commit, native risk/outcome.
+  - Evidence: focused RED was `AssertionError: ValueError not raised`. The normalized-key guard reached focused GREEN (1 test) and full GREEN (55 tests; 38/38 validations). Independent probes confirmed conflicting, identical, and whitespace-normalized duplicates fail with stable error text while unique keys remain unchanged. Structural/scope checks passed; native assessment remained `unassessable`, so the independent verifier was the risk-directed check. Parent spot check reran 55 tests and 38/38 validations. Work-unit commit: `748278bb86a4c2d2dc3d4aeb39e7a72b031fdb0c` (`fix: reject duplicate flattened YAML keys`), task delta `+8/-1=9`.
 
 - [ ] **ODD-CHK-03 — Reconcile final ODD state**
+  - Status: verified; reconciliation commit pending.
   - Route: parent reconciliation plus risk-directed verification.
   - Confirm only authorized product/task-document paths changed.
   - Confirm protected/untracked artifacts remain untouched.
   - Record final verification and authored-line totals.
   - Record that F002/S10/R03 native ledgers remain open where provider authority is required.
+  - Evidence: branch scope is exactly `docs/publication-readiness/evidence.md`, this task document, and `scripts/publication-readiness/check_records.py`; accumulated authored delta is 356/400 lines. The index is clean, only this task document is modified, excluded `.codegraph/` and session HTML remain untracked, and `openspec/changes/**` is unchanged from the feature base. F002 remains ledger-open because ODD did not admit native correction evidence; S10 still needs a fresh reviewed baseline; R03 still requires provider/maintainer lineage disposition.
 
 ## Acceptance Criteria
 
@@ -132,6 +134,12 @@ Fail-open evidence parsing can allow structurally plausible but invalid readines
 - 2026-09-19: Final independent verification closed B07-02 with no remaining bounded finding; all requested checks passed and the historical Evidence Index remained byte-identical.
 - 2026-09-19: Parent spot check reran the full self-test (54 tests; 38/38 validations), then committed ODD-CHK-01 as `499a54cc1c42398c17c9553e56e32057d7ab2f9f`.
 - 2026-09-19: Started ODD-CHK-02; the remaining current-code defect is duplicate flattened-YAML key overwrite.
+- 2026-09-19: The writer observed duplicate-key RED, added a normalized-key pre-assignment guard, then passed 1 focused test, 55 full tests, 38/38 validations, and structural checks. Task diff is 8 insertions and 1 deletion; accumulated feature scope is 342 authored lines.
+- 2026-09-19: Native assessment for ODD-CHK-02 returned `unassessable` with empty native output, so RDD-off policy required an independent verifier.
+- 2026-09-19: Independent verification passed the focused test, direct duplicate/unique-key probes, 55 full tests, 38/38 validations, structural/scope checks, and a 349-line accumulated budget check.
+- 2026-09-19: Parent spot check reran 55 tests and 38/38 validations, then committed ODD-CHK-02 as `748278bb86a4c2d2dc3d4aeb39e7a72b031fdb0c`.
+- 2026-09-19: Started ODD-CHK-03 final reconciliation.
+- 2026-09-19: Final reconciliation confirmed three authorized tracked paths, 356/400 authored lines, clean index, no OpenSpec drift, unchanged excluded-untracked status, and the three intentionally open native ledgers.
 
 ## Verification Evidence
 
@@ -160,7 +168,19 @@ Fail-open evidence parsing can allow structurally plausible but invalid readines
 - Final independent result: completed; B07-02 resolved with 2 focused tests, 54 full tests, 38/38 validations, exact scope, and byte-identical Evidence Index history.
 - Parent spot check: `PYTHONDONTWRITEBYTECODE=1 python3 scripts/publication-readiness/check_records.py --self-test` passed 54 tests and 38/38 validations.
 - Work-unit commit: `499a54cc1c42398c17c9553e56e32057d7ab2f9f`; product/docs authored lines `166+1=167`.
+- ODD-CHK-02 RED: `AssertionError: ValueError not raised` for repeated `decision_status`.
+- ODD-CHK-02 writer focused GREEN: 1 test, `OK`.
+- ODD-CHK-02 writer full/runtime harness: 55 tests, `OK`; document validations 38/38.
+- ODD-CHK-02 task diff: 8 insertions and 1 deletion; accumulated feature scope 342 authored lines; `git diff --check` passed.
+- ODD-CHK-02 native assessment: `unassessable` (`native-assess-unavailable`, empty native output); independent verification required.
+- ODD-CHK-02 independent verification: focused test passed; conflicting and identical normalized duplicates rejected; unique-key mapping preserved; 55 tests and 38/38 validations passed; accumulated budget 349/400.
+- ODD-CHK-02 parent spot check: full self-test passed 55 tests and 38/38 validations.
+- ODD-CHK-02 work-unit commit: `748278bb86a4c2d2dc3d4aeb39e7a72b031fdb0c`; task authored lines `8+1=9`.
+- Final branch commits before reconciliation: `499a54cc`, `7024f920`, `748278bb`.
+- Final tracked scope: exactly three authorized paths; `openspec/changes/**` unchanged.
+- Final authored scope before reconciliation commit: 354 additions + 2 deletions = 356/400.
+- Final repository state: clean index; only this task document modified; `.codegraph/` and session HTML remain excluded untracked artifacts.
 
 ## Next Step
 
-Persist the completed ODD-CHK-01 record, then delegate ODD-CHK-02. Add the duplicate-key test first, observe RED against `flat_yaml`, implement deterministic rejection, and rerun focused/full checks.
+Commit the verified ODD-CHK-03 reconciliation, then record that commit identity in the durable task document and Engram mirror.
