@@ -75,14 +75,14 @@ Fail-open evidence parsing can allow structurally plausible but invalid readines
   - Commit as one work unit with tests and this document.
   - Evidence: focused RED was `AssertionError: ValueError not raised`. The normalized-key guard reached focused GREEN (1 test) and full GREEN (55 tests; 38/38 validations). Independent probes confirmed conflicting, identical, and whitespace-normalized duplicates fail with stable error text while unique keys remain unchanged. Structural/scope checks passed; native assessment remained `unassessable`, so the independent verifier was the risk-directed check. Parent spot check reran 55 tests and 38/38 validations. Work-unit commit: `748278bb86a4c2d2dc3d4aeb39e7a72b031fdb0c` (`fix: reject duplicate flattened YAML keys`), task delta `+8/-1=9`.
 
-- [ ] **ODD-CHK-03 — Reconcile final ODD state**
-  - Status: verified; reconciliation commit pending.
+- [x] **ODD-CHK-03 — Reconcile final ODD state**
+  - Status: completed.
   - Route: parent reconciliation plus risk-directed verification.
   - Confirm only authorized product/task-document paths changed.
   - Confirm protected/untracked artifacts remain untouched.
   - Record final verification and authored-line totals.
   - Record that F002/S10/R03 native ledgers remain open where provider authority is required.
-  - Evidence: branch scope is exactly `docs/publication-readiness/evidence.md`, this task document, and `scripts/publication-readiness/check_records.py`; accumulated authored delta is 356/400 lines. The index is clean, only this task document is modified, excluded `.codegraph/` and session HTML remain untracked, and `openspec/changes/**` is unchanged from the feature base. F002 remains ledger-open because ODD did not admit native correction evidence; S10 still needs a fresh reviewed baseline; R03 still requires provider/maintainer lineage disposition.
+  - Evidence: branch scope is exactly `docs/publication-readiness/evidence.md`, this task document, and `scripts/publication-readiness/check_records.py`; final authored delta is 362/400 lines. The index was clean at reconciliation, excluded `.codegraph/` and session HTML remain untracked, and `openspec/changes/**` is unchanged from the feature base. F002 remains ledger-open because ODD did not admit native correction evidence; S10 still needs a fresh reviewed baseline; R03 still requires provider/maintainer lineage disposition. Reconciliation commit: `fee9920d07fdf3d1bc752f2aa985f0d2a5bb2d71`.
 
 ## Acceptance Criteria
 
@@ -139,7 +139,7 @@ Fail-open evidence parsing can allow structurally plausible but invalid readines
 - 2026-09-19: Independent verification passed the focused test, direct duplicate/unique-key probes, 55 full tests, 38/38 validations, structural/scope checks, and a 349-line accumulated budget check.
 - 2026-09-19: Parent spot check reran 55 tests and 38/38 validations, then committed ODD-CHK-02 as `748278bb86a4c2d2dc3d4aeb39e7a72b031fdb0c`.
 - 2026-09-19: Started ODD-CHK-03 final reconciliation.
-- 2026-09-19: Final reconciliation confirmed three authorized tracked paths, 356/400 authored lines, clean index, no OpenSpec drift, unchanged excluded-untracked status, and the three intentionally open native ledgers.
+- 2026-09-19: Final reconciliation confirmed three authorized tracked paths, 362/400 authored lines, clean index, no OpenSpec drift, unchanged excluded-untracked status, and the three intentionally open native ledgers; committed as `fee9920d07fdf3d1bc752f2aa985f0d2a5bb2d71`.
 
 ## Verification Evidence
 
@@ -176,11 +176,11 @@ Fail-open evidence parsing can allow structurally plausible but invalid readines
 - ODD-CHK-02 independent verification: focused test passed; conflicting and identical normalized duplicates rejected; unique-key mapping preserved; 55 tests and 38/38 validations passed; accumulated budget 349/400.
 - ODD-CHK-02 parent spot check: full self-test passed 55 tests and 38/38 validations.
 - ODD-CHK-02 work-unit commit: `748278bb86a4c2d2dc3d4aeb39e7a72b031fdb0c`; task authored lines `8+1=9`.
-- Final branch commits before reconciliation: `499a54cc`, `7024f920`, `748278bb`.
+- Reconciliation commit: `fee9920d07fdf3d1bc752f2aa985f0d2a5bb2d71`; preceding branch commits: `499a54cc`, `7024f920`, `748278bb`.
 - Final tracked scope: exactly three authorized paths; `openspec/changes/**` unchanged.
-- Final authored scope before reconciliation commit: 354 additions + 2 deletions = 356/400.
+- Final authored scope: 360 additions + 2 deletions = 362/400.
 - Final repository state: clean index; only this task document modified; `.codegraph/` and session HTML remain excluded untracked artifacts.
 
 ## Next Step
 
-Commit the verified ODD-CHK-03 reconciliation, then record that commit identity in the durable task document and Engram mirror.
+ODD objective complete. Keep F002/S10/R03 native ledgers open until their separate provider-authorized workflows resume.
