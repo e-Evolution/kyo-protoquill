@@ -68,7 +68,10 @@ def flat_yaml(text: str) -> dict[str, str]:
         if not line or line.startswith(("#", " ")) or ":" not in line:
             continue
         key, value = line.split(":", 1)
-        values[key.strip()] = value.strip().strip('"')
+        key = key.strip()
+        if key in values:
+            raise ValueError(f"duplicate flattened YAML key: {key}")
+        values[key] = value.strip().strip('"')
     return values
 
 
@@ -1003,6 +1006,10 @@ class RecoveryContractTests(unittest.TestCase):
     def test_manifest_state_rejects_unsupported_value(self) -> None:
         self.assertFalse(manifest_states_are_valid({"fields.version.state": "resolved"}))
         self.assertTrue(manifest_states_are_valid({"fields.version.state": "unresolved"}))
+
+    def test_flat_yaml_rejects_duplicate_keys(self) -> None:
+        with self.assertRaisesRegex(ValueError, "duplicate flattened YAML key: decision_status"):
+            flat_yaml('decision_status: "pending"\ndecision_status: "pending"\n')
 
     def test_archive_ledger_accepts_complete_canonical_audit(self) -> None:
         check_archive_ledger_text(read(DEFAULT_ROOT, str(DOCS / "archive-reference-ledger.md")))
