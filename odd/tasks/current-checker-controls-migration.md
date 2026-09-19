@@ -82,21 +82,22 @@ The user selected **copy and preserve**:
   - Close with one test-boundary work-unit commit.
   - Evidence: loader-level RED failed with `registered=False; tests=55`. After the test-only repair, the focused test passed 1/1, the full suite passed 56/56 with 38/38 validations, and independent verification proved six genuine mutations, production bytes identical to the parent, clean structure, unchanged OpenSpec, and a 47-line checker delta. Commit: `dfbf70df50c7af0db3ad0deeeee5166e8061417d` (`test: register S10 positive authorization coverage`).
 
-- [ ] **ODD-MIG-03 — Verify the migrated current-state controls**
-  - Status: verified; evidence commit pending.
+- [x] **ODD-MIG-03 — Verify the migrated current-state controls**
+  - Status: completed.
   - Verify S09 document-path semantic validation, duplicate flattened-YAML rejection, and S10 positive-authorization rejection through registered focused tests and direct probes.
   - Run the normal checker, complete self-test, and event-graph harness.
   - Record current SHA-256/size facts for the five S10 inputs without copying their contents.
   - Confirm the three OpenSpec trees remain unchanged from the parent boundary.
   - Record historical unknowns and absent authorities explicitly.
-  - Evidence: 3/3 registered focused boundaries passed; direct probes passed one valid and one invalid S09 record, two duplicate-key forms, and six positive-authorization cases. The normal checker passed 38/38 validations, the self-test passed 56/56, and the event graph reported `RESULT: PASS`. The initial whitespace duplicate probe used a leading-space line that `flat_yaml` intentionally excludes; the corrected in-scope `a :` probe passed.
+  - Evidence: 3/3 registered focused boundaries passed; direct probes passed one valid and one invalid S09 record, two duplicate-key forms, and six positive-authorization cases. The normal checker passed 38/38 validations, the self-test passed 56/56, and the event graph reported `RESULT: PASS`. The initial whitespace duplicate probe used a leading-space line that `flat_yaml` intentionally excludes; the corrected in-scope `a :` probe passed. Evidence commit: `cf4cb829337712609212a2242f4a417ea9ae543a` (`docs: record current checker control verification`).
 
 - [ ] **ODD-MIG-04 — Reconcile and publish the ODD migration status**
-  - Status: pending.
+  - Status: verified; reconciliation commit pending.
   - Record work-unit commits, final authored-line count, exact tracked scope, protected exclusions, and verification results.
   - Mark technical ODD tasks complete only from current-state evidence.
   - Leave all native/OpenSpec checkboxes and reports untouched and open.
   - Close with a final documentation work-unit commit.
+  - Evidence: exact child scope is this ODD task document plus the checker test region; index clean, OpenSpec unchanged, excluded artifacts still untracked, merge base exactly `e4d0a9b0`, and authored total `203/400` (168 additions, 35 deletions).
 
 ## Acceptance Criteria
 
@@ -147,7 +148,9 @@ The user selected **copy and preserve**:
 - 2026-09-19: ODD-MIG-02 verification passed every code, test, scope, budget, and OpenSpec check; its only initial stop was an impossible historical byte-identity claim for excluded untracked artifacts without a pre-change baseline. The acceptance criterion now reports only provable untracked exclusion.
 - 2026-09-19: Completed ODD-MIG-02 in commit `dfbf70df`; the checker production boundary is unchanged and the registered suite now contains 56 tests.
 - 2026-09-19: ODD-MIG-03 current-state verification passed all focused, direct-probe, normal-checker, self-test, event-graph, identity, budget, and OpenSpec-boundary checks.
+- 2026-09-19: Completed ODD-MIG-03 in commit `cf4cb829`; current-state proof is recorded without upgrading historical or delivery authority.
+- 2026-09-19: Final reconciliation confirmed the three pre-reconciliation commits, exact two-path child scope, clean index, unchanged OpenSpec, and only the two excluded untracked artifacts.
 
 ## Next Step
 
-Commit the ODD-MIG-03 current-state verification record, then reconcile final ODD migration scope and status.
+Commit the verified ODD-MIG-04 reconciliation, then record its identity and close the durable ODD task.
