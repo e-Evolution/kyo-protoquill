@@ -1508,16 +1508,6 @@ instructions: Plan only: a future `git push` requires separate authority.
                 readiness,
             )
 
-        def test_s10_controls_accept_pending_unassigned_records_with_current_evidence(self) -> None:
-            check_s10_controls(
-                read(DEFAULT_ROOT, str(DOCS / "destination-decision.yaml")),
-                read(DEFAULT_ROOT, str(DOCS / "release-manifest.yaml")),
-                read(DEFAULT_ROOT, str(DOCS / "reconciliation.md")),
-                read(DEFAULT_ROOT, str(DOCS / "governance" / "release-controls.md")),
-                read(DEFAULT_ROOT, str(DOCS / "evidence.md")),
-            )
-
-
     def test_s10_controls_reject_missing_or_nonpending_signoff(self) -> None:
         destination = read(DEFAULT_ROOT, str(DOCS / "destination-decision.yaml"))
         manifest = read(DEFAULT_ROOT, str(DOCS / "release-manifest.yaml"))
@@ -1541,32 +1531,19 @@ instructions: Plan only: a future `git push` requires separate authority.
                 evidence,
             )
 
-
-            destination = read(DEFAULT_ROOT, str(DOCS / "destination-decision.yaml"))
-            manifest = read(DEFAULT_ROOT, str(DOCS / "release-manifest.yaml"))
-            reconciliation = read(DEFAULT_ROOT, str(DOCS / "reconciliation.md"))
-            controls = read(DEFAULT_ROOT, str(DOCS / "governance" / "release-controls.md"))
-            evidence = read(DEFAULT_ROOT, str(DOCS / "evidence.md"))
-            with self.assertRaisesRegex(ValueError, "authorization"):
-                check_s10_controls(
-                    destination.replace('authorization.maven_central.authorized: "not-authorized"', 'authorization.maven_central.authorized: "authorized"', 1),
-                    manifest,
-                    reconciliation,
-                    controls,
-                    evidence,
-                )
-            for authorization in ("ready", "publishable"):
-                with self.subTest(authorization=authorization), self.assertRaisesRegex(ValueError, "authorization"):
+    def test_s10_controls_reject_positive_authorization_states_with_pending_prerequisites(self) -> None:
+        destination = read(DEFAULT_ROOT, str(DOCS / "destination-decision.yaml"))
+        manifest = read(DEFAULT_ROOT, str(DOCS / "release-manifest.yaml"))
+        reconciliation = read(DEFAULT_ROOT, str(DOCS / "reconciliation.md"))
+        controls = read(DEFAULT_ROOT, str(DOCS / "governance" / "release-controls.md"))
+        evidence = read(DEFAULT_ROOT, str(DOCS / "evidence.md"))
+        for field in ("authorization.maven_central.authorized", "source_publication.authorized"):
+            original = f'{field}: "not-authorized"'
+            self.assertIn(original, destination)
+            for authorization in ("authorized", "ready", "publishable"):
+                with self.subTest(field=field, authorization=authorization), self.assertRaisesRegex(ValueError, "authorization"):
                     check_s10_controls(
-                        destination.replace('authorization.maven_central.authorized: "not-authorized"', f'authorization.maven_central.authorized: "{authorization}"', 1),
-                        manifest,
-                        reconciliation,
-                        controls,
-                        evidence,
-                    )
-                with self.assertRaisesRegex(ValueError, "authorization"):
-                    check_s10_controls(
-                        destination.replace('source_publication.authorized: "not-authorized"', 'source_publication.authorized: "authorized"', 1),
+                        destination.replace(original, f'{field}: "{authorization}"', 1),
                         manifest,
                         reconciliation,
                         controls,
