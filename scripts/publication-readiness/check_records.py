@@ -514,6 +514,46 @@ def validate_s09_slice_record(record: dict[str, str], evidence_statuses: dict[st
         raise ValueError("slice contains a forbidden mutation-capable instruction")
 
 
+S09_RECORDS_HEADING = "### S09 Slice Records"
+S09_EMPTY_RECORD_POLICY = "Current empty-record policy: `no-s09-slice-records`."
+S09_RECORD_BLOCK = re.compile(r"```s09-slice\n(.*?)\n```", re.DOTALL)
+
+
+def parse_s09_slice_records(text: str) -> tuple[dict[str, str], ...]:
+    headings = list(re.finditer(rf"(?m)^{re.escape(S09_RECORDS_HEADING)}$", text))
+    if not headings:
+        raise ValueError("missing S09 slice record representation")
+    if len(headings) != 1:
+        raise ValueError("multiple S09 slice record representations")
+    section = text[headings[0].end():]
+    section = re.split(r"\n\s*## ", section, maxsplit=1)[0].strip()
+    if section == S09_EMPTY_RECORD_POLICY:
+        return ()
+    if S09_EMPTY_RECORD_POLICY in section:
+        raise ValueError("S09 slice records conflict with the empty-record policy")
+    if not section:
+        raise ValueError("S09 slice record representation requires records or the empty-record policy")
+    blocks = list(S09_RECORD_BLOCK.finditer(section))
+    if S09_RECORD_BLOCK.sub("", section).strip():
+        raise ValueError("undeclared S09 slice record content")
+    records: list[dict[str, str]] = []
+    for block in blocks:
+        record: dict[str, str] = {}
+        for line in block.group(1).splitlines():
+            if not line or ":" not in line:
+                raise ValueError("malformed S09 slice record")
+            field, value = line.split(":", 1)
+            field, value = field.strip(), value.strip()
+            if not field or field in record:
+                raise ValueError("malformed S09 slice record")
+            record[field] = value
+        unsupported = set(record) - set(S09_SLICE_FIELDS)
+        if unsupported:
+            raise ValueError("undeclared S09 slice record field: " + ", ".join(sorted(unsupported)))
+        records.append(record)
+    return tuple(records)
+
+
 def pending_unassigned_signoff(destination: dict[str, str]) -> bool:
     return (
         destination.get("signoff.status") == "pending"
@@ -706,7 +746,11 @@ def check_s09_checker_contract(root: Path) -> None:
         "stale linked\n    record must also appear", "protected-non-target rejection", "exactly 400",
         "401", "mutation-capable instruction", "Plan-only Git wording is permitted",
     )
-
+    evidence_statuses = {
+        row[0]: row[6] for row in markdown_rows(text, "Evidence Index") if len(row) >= 7
+    }
+    for record in parse_s09_slice_records(text):
+        validate_s09_slice_record(record, evidence_statuses)
 
 
 def validate_evidence_core(record: dict[str, str], known_ids: set[str]) -> None:
@@ -1293,6 +1337,116 @@ class RecoveryContractTests(unittest.TestCase):
             with self.subTest(malformed=malformed), self.assertRaises(ValueError):
                 check_s07_reconciliation_record(reconciliation.replace(valid, malformed, 1), evidence)
 
+
+    def test_s09_document_path_validates_declared_slice_records(self) -> None:
+        original_read = read
+        evidence = original_read(DEFAULT_ROOT, str(DOCS / "evidence.md"))
+        record = """```s09-slice
+outcome: S09 document path test
+start_state: open
+end_state: checked
+path_allowlist: scripts/publication-readiness/check_records.py
+protected_non_targets: .codegraph/, pi-session-*.html
+dependencies: ER-014
+evidence_links: ER-014
+stale_evidence_links: ER-014
+acceptance: Fail closed.
+verification: self-test
+runtime: N/A
+additions: 400
+deletions: 0
+rollback: Revert this test record.
+delivery_authority: not-authorized
+instructions: Plan only: a future `git push` requires separate authority.
+```"""
+
+        empty_policy = "### S09 Slice Records\n\nCurrent empty-record policy: `no-s09-slice-records`."
+
+        def s09_error(declared_evidence: str) -> str | None:
+            def read_declared_evidence(root: Path, relative: str) -> str:
+                if relative == str(DOCS / "evidence.md"):
+                    return declared_evidence
+                return original_read(root, relative)
+
+            with patch(f"{__name__}.read", side_effect=read_declared_evidence):
+                return dict(check_documents())["S09 slice integrity and operation safety"]
+
+        def s09_result(records: str) -> str | None:
+            if empty_policy in evidence:
+                declared_evidence = evidence.replace(
+                    empty_policy,
+                    f"### S09 Slice Records\n\n{records}",
+                    1,
+                )
+            else:
+                declared_evidence = evidence.replace(
+                    "\n    ## Verification Record Schema",
+                    f"\n### S09 Slice Records\n\n{records}\n\n    ## Verification Record Schema",
+                    1,
+                )
+            return s09_error(declared_evidence)
+
+        self.assertIsNone(s09_result(record))
+        self.assertEqual(s09_error(evidence.replace(empty_policy, "", 1)), "missing S09 slice record representation")
+        duplicate_section = evidence + (
+            "\n## Later S09 Context\n\n### S09 Slice Records\n\n"
+            + record.replace("additions: 400", "additions: 401", 1)
+        )
+        self.assertEqual(s09_error(duplicate_section), "multiple S09 slice record representations")
+        cases = (
+            (record.replace("additions: 400", "additions: 401", 1), "slice exceeds hard 400-line budget"),
+            (record.replace("path_allowlist: scripts/publication-readiness/check_records.py", "path_allowlist: .codegraph/snapshot", 1), "slice captures a protected non-target"),
+            (record.replace("stale_evidence_links: ER-014", "stale_evidence_links:", 1), "slice stale-link propagation is incomplete"),
+            (record.replace("delivery_authority: not-authorized", "delivery_authority: authorized", 1), "slice cannot grant delivery authority"),
+            (record.replace("instructions: Plan only: a future `git push` requires separate authority.", "instructions: $ git push origin main", 1), "slice contains a forbidden mutation-capable instruction"),
+            (record.replace("rollback: Revert this test record.\n", "", 1), "slice missing fields: rollback"),
+            (record.replace("rollback: Revert this test record.", "rollback Revert this test record.", 1), "malformed S09 slice record"),
+            (record + "\nCurrent empty-record policy: `no-s09-slice-records`.", "S09 slice records conflict with the empty-record policy"),
+            (record.replace("outcome: S09 document path test", "outcome: S09 document path test\noutcome: duplicate", 1), "malformed S09 slice record"),
+            (record + "\nundeclared content", "undeclared S09 slice record content"),
+        )
+        for invalid_records, expected_error in cases:
+            with self.subTest(expected_error=expected_error):
+                self.assertEqual(s09_result(invalid_records), expected_error)
+
+    def test_s09_document_requires_semantic_validation(self) -> None:
+        original_read = read
+        evidence = original_read(DEFAULT_ROOT, str(DOCS / "evidence.md"))
+        invalid_record = """```s09-slice
+outcome: S09 semantic validation test
+start_state: open
+end_state: checked
+path_allowlist: scripts/publication-readiness/check_records.py
+protected_non_targets: .codegraph/, pi-session-*.html
+dependencies: ER-001
+evidence_links: ER-001
+stale_evidence_links:
+acceptance: Fail closed.
+verification: self-test
+runtime: N/A
+additions: 400
+deletions: 0
+rollback: Revert this test record.
+delivery_authority: authorized
+instructions: Plan only: a future `git push` requires separate authority.
+```"""
+        invalid_evidence = evidence.replace(
+            "### S09 Slice Records\n\nCurrent empty-record policy: `no-s09-slice-records`.",
+            f"### S09 Slice Records\n\n{invalid_record}",
+            1,
+        )
+
+        def read_invalid_evidence(root: Path, relative: str) -> str:
+            if relative == str(DOCS / "evidence.md"):
+                return invalid_evidence
+            return original_read(root, relative)
+
+        with patch(f"{__name__}.read", side_effect=read_invalid_evidence):
+            results = dict(check_documents())
+        self.assertEqual(
+            results["S09 slice integrity and operation safety"],
+            "slice cannot grant delivery authority",
+        )
 
     def test_s09_slice_record_accepts_plan_only_wording_and_exact_budget(self) -> None:
         record = {
