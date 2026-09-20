@@ -27,7 +27,7 @@ The user selected **copy and preserve**:
 
 - Parent branch: `fix/checker-integrity-corrections`.
 - Parent commit: `e4d0a9b09594e7f3a087f7be56225a0842f1ccc3`.
-- Child branch: `odd/current-checker-controls-migration`.
+- Child branch: `test/current-checker-controls-migration`.
 - Current checker SHA-256 at migration start: `5d9a3620b89c784d038d0c863c2e6107bdb81679518a7de75544b0c2f605bf34`.
 - Static inspection indicates all three pending behaviors are implemented.
 - The S10 positive-authorization cases are not trustworthy coverage yet: their test-looking statements are unreachable inside an exception context, and a nearby S10 test is a nested local function rather than a registered class test.
@@ -57,8 +57,8 @@ The user selected **copy and preserve**:
 ## Delivery and Review Workload
 
 - Delivery strategy: `auto-chain`.
-- Chain strategy: `feature-branch-chain`.
-- Dependency: this child branch is based on the completed checker-integrity branch; review it against `e4d0a9b0`, not against the default branch.
+- Chain strategy: `stacked-prs-to-main`.
+- Dependency: PR 1 targets `master`; this child is PR 2 against `fix/checker-integrity-corrections` and retargets to `master` after PR 1 lands.
 - Forecast for this child slice: 120–250 authored changed lines, including the ODD record and bounded test repair.
 - Budget: at most 400 authored additions plus deletions for this child slice.
 
@@ -97,7 +97,7 @@ The user selected **copy and preserve**:
   - Mark technical ODD tasks complete only from current-state evidence.
   - Leave all native/OpenSpec checkboxes and reports untouched and open.
   - Close with a final documentation work-unit commit.
-  - Evidence: exact child scope is this ODD task document plus the checker test region; index clean, OpenSpec unchanged, excluded artifacts still untracked, merge base exactly `e4d0a9b0`, and authored total `203/400` (168 additions, 35 deletions). Reconciliation commit: `2bfdb0693ce2b718b214c0ad97b091558bc91882` (`docs: reconcile checker controls migration`).
+  - Evidence: exact child scope is this ODD task document plus the checker test region; index clean, OpenSpec unchanged, excluded artifacts still untracked, merge base exactly `e4d0a9b0`, and final pre-publication scope `204/400` (169 additions, 35 deletions). Reconciliation commit: `2bfdb0693ce2b718b214c0ad97b091558bc91882` (`docs: reconcile checker controls migration`).
 
 ## Acceptance Criteria
 
@@ -150,6 +150,7 @@ The user selected **copy and preserve**:
 - 2026-09-19: ODD-MIG-03 current-state verification passed all focused, direct-probe, normal-checker, self-test, event-graph, identity, budget, and OpenSpec-boundary checks.
 - 2026-09-19: Completed ODD-MIG-03 in commit `cf4cb829`; current-state proof is recorded without upgrading historical or delivery authority.
 - 2026-09-19: Final reconciliation confirmed the three pre-reconciliation commits, exact two-path child scope, clean index, unchanged OpenSpec, and only the two excluded untracked artifacts; committed as `2bfdb069`.
+- 2026-09-19: Renamed the unpublished child branch to `test/current-checker-controls-migration` and selected a two-PR stack so each immediate-parent diff stays reviewable.
 
 ## Next Step
 
