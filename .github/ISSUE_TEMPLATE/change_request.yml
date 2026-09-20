@@ -1,0 +1,58 @@
+name: Change request
+description: Propose a bounded, reviewable repository change.
+title: "[Change]: "
+labels: []
+assignees: []
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the requested outcome in a few sentences.
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Explain the current behavior or constraint that motivates this change.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the bounded implementation or documentation change.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      description: Select the primary area affected by this request.
+      options:
+        - Publication readiness
+        - Build and dependencies
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: List the observable conditions that must hold when the work is complete.
+    validations:
+      required: true
+
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification plan
+      description: List the tests or checks that will verify the requested outcome.
+    validations:
+      required: true
