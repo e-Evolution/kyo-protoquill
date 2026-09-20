@@ -140,6 +140,17 @@ aggregate `not-ready` disposition.
     are pure in-memory records: they execute no commands and inspect no protected
     state.
 
+    Declared slices use a `### S09 Slice Records` section containing only one
+    or more fenced `s09-slice` key/value blocks. Each block supplies every
+    required S09 field exactly once; undeclared text and fields are rejected.
+    This document currently has no declared slice records, so it uses the
+    exact empty-record policy below. The policy cannot appear alongside a
+    declared record.
+
+### S09 Slice Records
+
+Current empty-record policy: `no-s09-slice-records`.
+
     ## Verification Record Schema
 
 
